@@ -2,7 +2,7 @@ import express from 'express';
 import neo4j from 'neo4j-driver';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import { BasicDriver } from './types/BasicDriver';
 
 const app = express();
 const port = 5000; // You can change this
@@ -16,16 +16,52 @@ const driver = neo4j.driver(
     neo4j.auth.basic("", "")
 );
 
-app.get('/api/data', async (req, res) => {
+async function runQuery(query: string, message: string, params: any = {}) {
     const session = driver.session();
+    let result;
     try {
-        const result = await session.run('MATCH (n) RETURN n LIMIT 10');
-        res.json(result.records.map((record) => record.get('n').properties));
+        console.log(`${message}...`);
+        const start = Date.now();
+        result = await session.run(query, params);
+        const end = Date.now();
+        console.log(`\t\tcompleted in ${end - start}ms`);
     } finally {
         await session.close();
     }
+    return result;
+}
+
+//////////      Driver      //////////
+app.get('/api/driver/basic', async (req, res) => {
+    const driverID = req.query.driverID;
+    const result = await runQuery(
+        `MATCH (d:Driver {driver_id: $driverID})
+        RETURN d`,
+        `Fetching driver with ID ${driverID}`,
+        { driverID }
+    )
+
+    if (result.records.length === 0) {
+        res.status(404).send("Driver not found");
+    } else {
+        const driver = BasicDriver.fromRecord(result.records[0]);
+        res.json(driver.toJSON());
+    }
 });
 
+app.get('/api/drivers/basic', async (req, res) => {
+    const result = await runQuery(`
+        MATCH (d:Driver)
+        RETURN d
+        ORDER BY d.first_name ASC, d.last_name ASC`,
+        `Fetching all drivers`
+    )
+
+    const drivers: BasicDriver[] = result.records.map((record) => BasicDriver.fromRecord(record))
+    res.json(drivers.map(driver => driver.toJSON()));
+});
+
+
 app.listen(port, () => {
-    console.log(`Backend server running at http://localhost:${port}`);
+    console.log(`Backend server running at http://${process.env.REACT_APP_API_BASE_URL}:${port}`);
 });
