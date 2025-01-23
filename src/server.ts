@@ -35,6 +35,10 @@ async function runQuery(query: string, message: string, params: any = {}) {
 //////////      Driver      //////////
 app.get('/api/driver/basic', async (req, res) => {
     const driverID = req.query.driverID;
+    if (!driverID) {
+        res.status(400).send("Missing driverID parameter");
+        return;
+    }
     const result = await runQuery(
         `MATCH (d:Driver {driver_id: $driverID})
         RETURN d`,
@@ -64,5 +68,5 @@ app.get('/api/drivers/basic', async (req, res) => {
 
 
 app.listen(port, () => {
-    console.log(`Backend server running at http://${process.env.REACT_APP_API_BASE_URL}`);
+    console.log(`Backend server running at https://${process.env.REACT_APP_API_BASE_URL}`);
 });
