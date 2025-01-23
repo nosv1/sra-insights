@@ -1,2 +1,2 @@
-web: npx ts-node ./src/server.ts
-frontend: npm start
+web: npm start
+backend: npx ts-node ./src/server.ts
