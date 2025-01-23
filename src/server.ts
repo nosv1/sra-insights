@@ -63,5 +63,5 @@ app.get('/api/drivers/basic', async (req, res) => {
 
 
 app.listen(port, () => {
-    console.log(`Backend server running at http://${process.env.REACT_APP_API_BASE_URL}:${port}`);
+    console.log(`Backend server running at http://${process.env.REACT_APP_API_BASE_URL}`);
 });
