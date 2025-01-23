@@ -5,7 +5,7 @@ import cors from 'cors';
 import { BasicDriver } from './types/BasicDriver';
 
 const app = express();
-const port = 5000; // You can change this
+const port = process.env.PORT || 5000; // You can change this
 
 app.use(cors());  // This allows all origins, which is fine for development
 
