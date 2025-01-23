@@ -3,10 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 // import HomePage from './pages/HomePage';
 import DriverPage from './pages/DriverPage';
 import './App.css'
-
-interface NodeData {
-  [key: string]: any;
-}
+import TeamSeries from './pages/TeamSeries';
 
 const App: React.FC = () => {
   return (
