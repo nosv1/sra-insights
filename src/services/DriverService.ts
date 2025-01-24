@@ -7,6 +7,8 @@ export const fetchDriverByID = async (driverID: string): Promise<BasicDriver> =>
 };
 
 export const fetchBasicDrivers = async (): Promise<BasicDriver[]> => {
+    const t = `${process.env.REACT_APP_API_BASE_URL}/api/drivers/basic`;
+    const u = `${process.env.PORT}`;
     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/drivers/basic`);
     if (!response.ok) throw new Error("Failed to fetch driver names");
     return response.json();
