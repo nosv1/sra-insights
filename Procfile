@@ -1,4 +1,4 @@
-web: serve -s build
+# web: serve -s build
 
 # web: npm start
-backend: npx ts-node ./src/server.ts
+web: npx ts-node ./src/server.ts
