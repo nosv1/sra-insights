@@ -1,61 +1,73 @@
 export class BasicDriver {
-    driverID: string;
+    driverId: string;
+    memberId: string;
     firstName: string;
     lastName: string;
-    division: number | null;
+    division: number;
 
-    constructor(driverID: string, first_name: string, last_name: string, division: number) {
-        this.driverID = driverID;
-        this.firstName = first_name;
-        this.lastName = last_name;
-        this.division = division;
+    constructor(data: Partial<BasicDriver> = {}) {
+        this.driverId = data.driverId ?? '';
+        this.memberId = data.memberId ?? '';
+        this.firstName = data.firstName ?? '';
+        this.lastName = data.lastName ?? '';
+        this.division = data.division ?? 0;
     }
 
     static fromNode(node: any): BasicDriver {
-        return new BasicDriver(
-            node.properties['driver_id'],
-            node.properties['first_name'],
-            node.properties['last_name'],
-            node.properties['division']
-        );
+        return new BasicDriver({
+            driverId: node.properties['driver_id'],
+            memberId: node.properties['member_id'],
+            firstName: node.properties['first_name'],
+            lastName: node.properties['last_name'],
+            division: node.properties['division']
+        });
     }
 
-    static fromRecord(record: any): BasicDriver {
-        return BasicDriver.fromNode(record._fields[record._fieldLookup['d']]);
+    static fromRecord(record: any): BasicDriver | undefined {
+        const node = record._fields[record._fieldLookup['d']];
+        if (!node) {
+            return undefined;
+        }
+        return BasicDriver.fromNode(node);
     }
 
-    get raceDivision(): number | null {
-        return this.division !== null ? Math.floor(this.division) : null;
+    get raceDivision(): number {
+        return this.division !== null ? Math.floor(this.division) : 0;
+    }
+
+    get isSilver(): boolean {
+        return this.raceDivision !== this.division;
     }
 
     get name(): string {
         return `${this.firstName} ${this.lastName}`;
     }
 
-    toBasicJSON() {
-        // these are the attrs that can be included that won't nest
-        return {
-            driverID: this.driverID,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            division: this.division,
-
-            raceDivision: this.raceDivision,
-            name: this.name
-        }
+    get sraMemberStatsURL(): string {
+        // https://www.simracingalliance.com/member_stats/?member=58dd0090a7e8c4582e1db5d77ec20a4185ba73931680af9907a19cc7011f2777
+        return `https://www.simracingalliance.com/member_stats/?member=${this.memberId}`;
     }
 
-    toJSON() {
+    toBasicJSON() {
         return {
             // These are the properties of the class
-            driverID: this.driverID,
+            driverId: this.driverId,
+            memberId: this.memberId,
             firstName: this.firstName,
             lastName: this.lastName,
             division: this.division,
 
             // These are computed properties
             raceDivision: this.raceDivision,
-            name: this.name
+            isSilver: this.isSilver,
+            name: this.name,
+            sraMemberStatsURL: this.sraMemberStatsURL
+        }
+    }
+
+    toJSON() {
+        return {
+            ...this.toBasicJSON(),
         };
     }
 }
