@@ -16,7 +16,6 @@
         },
         "cwd": "${workspaceFolder}",  // Ensure the working directory is set to sra-insights
         "sourceMaps": true
-      }
+      },
     ]
   }
-  
