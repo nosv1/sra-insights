@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import './App.css';
 // import HomePage from './pages/HomePage';
-import DriverPage from './pages/DriverPage';
-import './App.css'
-import TeamSeries from './pages/TeamSeries';
+import { DriverPage } from './pages/DriverPage';
+import { TeamSeriesAPDPlotPage } from './pages/TeamSeries/APDPlotPage';
+import { TeamSeriesLeaderboardsPage } from './pages/TeamSeries/LeaderboardsPage';
 
 const App: React.FC = () => {
+  const [isTeamSeriesDropdownOpen, setIsTeamSeriesDropdownOpen] = useState(false);
+
+  const toggleTeamSeriesDropdown = () => {
+    setIsTeamSeriesDropdownOpen(!isTeamSeriesDropdownOpen);
+  };
+
   return (
     <Router>
       <nav>
@@ -17,13 +24,26 @@ const App: React.FC = () => {
             <Link to="/driver">Driver</Link>
           </li>
           <li>
-            <Link to="/team-series">Team Series</Link>
+            <div onMouseEnter={toggleTeamSeriesDropdown} onMouseLeave={toggleTeamSeriesDropdown}>
+              Team Series {isTeamSeriesDropdownOpen ? '▼' : '►'}
+              {isTeamSeriesDropdownOpen && (
+                <ul>
+                  <li>
+                    <Link to="/team-series/lap-time-insights">Lap Time Insights</Link>
+                  </li>
+                  <li>
+                    <Link to="/team-series/apd-plot">Average Percent Difference (APD) Plot</Link>
+                  </li>
+                </ul>
+              )}
+            </div>
           </li>
         </ul>
       </nav>
       <Routes>
-        {/* <Route path="/" element={<HomePage />} /> */}
-        <Route path="/team-series" element={<TeamSeries />} />
+        <Route path="/" element={<div></div>} />
+        <Route path="/team-series/lap-time-insights" element={<TeamSeriesLeaderboardsPage />} />
+        <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
         <Route path="/driver" element={<DriverPage />} />
       </Routes>
     </Router>

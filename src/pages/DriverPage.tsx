@@ -1,32 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import DriverSearch from '../components/DriverSearch';
+import { DriverSearch } from '../components/DriverSearch';
+import { Footer } from '../components/Footer';
+import { Header } from '../components/Header';
+import { useBasicDrivers } from '../hooks/useBasicDrivers';
 import { BasicDriver } from '../types/BasicDriver';
-import { useBasicDrivers as useBasicDrivers } from '../hooks/useBasicDrivers';
 
-const DriverPage: React.FC = () => {
-    const [selectedDriver, setSelectedDriver] = useState<BasicDriver | null>(null);
+export const DriverPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const { basicDrivers, loading, error } = useBasicDrivers();
+    let { basicDrivers, loading, error } = useBasicDrivers();
+    const initialDriverId = searchParams.get('driverId');
+    const [selectedDriver, setSelectedDriver] = useState<BasicDriver | null>(
+        basicDrivers.find(driver => driver.driverId === initialDriverId) || null
+    );
+
+    useEffect(() => {
+        if (initialDriverId && !selectedDriver) {
+            const driver = basicDrivers.find(driver => driver.driverId === initialDriverId);
+            if (driver) {
+                setSelectedDriver(driver);
+            }
+        }
+    }, [initialDriverId, basicDrivers, selectedDriver]);
 
     const handleDriverSelect = (basicDriver: BasicDriver) => {
         setSelectedDriver(basicDriver);
-        setSearchParams({ driverID: basicDriver.driverID });
+        setSearchParams({ driverId: basicDriver.driverId });
     };
 
     return (
         <div>
-            <h1>Driver Stats</h1>
+            <Header />
+            <h2>Driver Stats</h2>
             <DriverSearch
                 onDriverSelect={handleDriverSelect}
                 basicDrivers={basicDrivers}
                 basicDriversLoading={loading}
-                initialDriverID={searchParams.get('driverID')}
+                initialDriverId={initialDriverId}
                 selectedDriver={selectedDriver}
             />
-            {selectedDriver && <p className="selected-driver">Selected Driver: {selectedDriver.name} {selectedDriver.driverID}</p>}
+            {selectedDriver && <p className="selected-driver">Selected Driver: {selectedDriver.name} {selectedDriver.driverId}</p>}
+            <Footer />
         </div>
     );
 };
-
-export default DriverPage;
