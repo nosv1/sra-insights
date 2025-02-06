@@ -1,3 +1,5 @@
+import { Node, RecordShape } from "neo4j-driver";
+
 export class TeamSeriesSession {
     sessionKey: string;
     division: number;
@@ -11,7 +13,7 @@ export class TeamSeriesSession {
         this.avgPercentDiff = data.avgPercentDiff ?? 0;
     }
 
-    static fromNode(node: any): TeamSeriesSession {
+    static fromNode(node: Node): TeamSeriesSession {
 
         return new TeamSeriesSession({
             sessionKey: node.properties['session_key'],
@@ -21,9 +23,16 @@ export class TeamSeriesSession {
         });
     }
 
-    static fromRecord(record: any): TeamSeriesSession | undefined {
-        const node = record._fields[record._fieldLookup['ts']];
-        if (!node) {
+    static fromRecord(
+        record: RecordShape,
+        { }: {
+            getSession?: boolean
+        } = {}
+    ): TeamSeriesSession | undefined {
+        let node: Node
+        try {
+            node = record.get('ts');
+        } catch (error) {
             return undefined;
         }
         return TeamSeriesSession.fromNode(node);

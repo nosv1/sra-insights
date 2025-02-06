@@ -2,10 +2,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import neo4j from 'neo4j-driver';
+import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchWeekendByKey } from './services/SessionService';
 import { BasicDriver } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
 import { Lap } from './types/Lap';
 import { Season } from './types/Season';
+import { Session } from './types/Session';
+import { Weekend } from './types/Weekend';
 
 const app = express();
 const port = process.env.PORT || 5000; // You can change this
@@ -15,14 +18,14 @@ app.use(cors());  // This allows all origins, which is fine for development
 
 dotenv.config();
 
-const driver = neo4j.driver(
+const neoDriver = neo4j.driver(
     `bolt://${process.env.NEO_DB_HOST}:7687`,
     neo4j.auth.basic("", ""),
     { disableLosslessIntegers: true }
 );
 
 async function runQuery(query: string, message: string, params: any = {}) {
-    const session = driver.session();
+    const session = neoDriver.session();
     let result;
     try {
         console.log(`${message}...`);
@@ -44,11 +47,16 @@ app.get('/api/car-drivers/complete', async (req, res) => {
         "Fetching complete car driver details"
     )
 
-    const carDrivers = result.records.map(record => CarDriver.fromRecord(record));
-    res.json(carDrivers);
+    const carDriversJSON = result.records.map(record =>
+        CarDriver.fromRecord(record, {
+            getBasicDriver: true,
+            getSessionCar: true
+        })?.toJSON()
+    );
+    res.json(carDriversJSON);
 });
 
-app.get('/api/car-drivers', async (req, res) => {
+app.get('/api/car-drivers/team-series', async (req, res) => {
     const stringToArray = (str: string, toType: any) => {
         if (!str) {
             return [];
@@ -84,8 +92,15 @@ app.get('/api/car-drivers', async (req, res) => {
         { trackNames, divisions, seasons, sessionTypes, pastNumSessions }
     )
 
-    const carDrivers = result.records.map(record => CarDriver.fromRecord(record));
-    res.json(carDrivers);
+    const carDriversJSON = result.records.map(record =>
+        CarDriver.fromRecord(record, {
+            getBasicDriver: true,
+            getSessionCar: true,
+            getSession: true,
+            getSessionTeamSeriesSession: true
+        })?.toJSON()
+    );
+    res.json(carDriversJSON);
 });
 
 //////////      Driver      //////////
@@ -112,16 +127,15 @@ app.get('/api/driver/basic', async (req, res) => {
 
 app.get('/api/drivers/basic', async (req, res) => {
     const result = await runQuery(`
-    MATCH(d: Driver)
+        MATCH(d: Driver)
         RETURN d
         ORDER BY d.first_name ASC, d.last_name ASC`,
         `Fetching all drivers`
     )
 
-    const drivers: BasicDriver[] = result.records
-        .map((record) => BasicDriver.fromRecord(record))
-        .filter((driver) => driver !== undefined);
-    res.json(drivers.map(driver => driver.toJSON()));
+    const driversJSON = result.records
+        .map((record) => BasicDriver.fromRecord(record)?.toJSON())
+    res.json(driversJSON);
 });
 
 //////////      Lap      //////////
@@ -145,14 +159,98 @@ app.get('/api/laps', async (req, res) => {
         { afterDate, beforeDate, trackName }
     );
 
-    const laps = result.records.map(record => Lap.fromRecord(record));
-    res.json(laps);
+    const lapsJSON = result.records.map(record =>
+        Lap.fromRecord(record, {
+            getSession: true,
+            getSessionCar: true,
+            getCarDriver: true,
+            getBasicDriver: true
+        })?.toJSON()
+    );
+    res.json(lapsJSON);
 });
 
 
 //////////      Session      //////////
+app.get('/api/sessions/complete', async (req, res) => {
+    const sessionKey = req.query.sessionKey || '';
 
+    if (!sessionKey) {
+        res.status(400).send("Missing sessionKey parameter");
+        return;
+    }
 
+    const result = await runQuery(`
+        MATCH (s:Session { key_: $sessionKey })<-[:CAR_TO_SESSION]-(c:Car)
+        MATCH (cd:CarDriver)-[:CAR_DRIVER_TO_CAR]->(c)
+        MATCH (d:Driver)-[:DRIVER_TO_CAR_DRIVER]->(cd)
+        MATCH (l:Lap)-[:LAP_TO_CAR]->(c)
+        WITH s, c, cd, d, l
+        ORDER BY c.finish_position ASC, l.lap_number ASC
+        RETURN s, c, cd, d, COLLECT(l) as laps`,
+        `Fetching complete session with key ${sessionKey}`,
+        { sessionKey }
+    );
+
+    const sessionJSON = Session.fromRecordsWithCarDrivers(result.records)?.toJSON();
+    res.json(sessionJSON);
+});
+
+app.get('/api/sessions/basic-weekend', async (req, res) => {
+    const sessionKey = req.query.sessionKey || '';
+
+    if (!sessionKey) {
+        res.status(400).send("Missing sessionKey parameter");
+        return;
+    }
+
+    const result = await runQuery(`
+        MATCH (q:Session)-[:QUALI_TO_RACE]->(r:Session)
+        WHERE q.key_ = $sessionKey OR r.key_ = $sessionKey
+        RETURN q, r`,
+        `Fetching weekend for session ${sessionKey}`,
+        { sessionKey }
+    );
+
+    const weekend = Weekend.fromRecord(result.records[0]);
+    res.json(weekend.toJSON());
+});
+
+app.get('/api/sessions/complete-weekend', async (req, res) => {
+    const sessionKey = req.query.sessionKey || '';
+
+    if (!sessionKey) {
+        res.status(400).send("Missing sessionKey parameter");
+        return;
+    }
+
+    let weekend = await fetchWeekendByKey(sessionKey as string);
+    weekend.qualifying = await fetchCompleteSessionByKey(weekend.qualifying.key_);
+    weekend.race = await fetchCompleteSessionByKey(weekend.race.key_);
+
+    res.json(weekend);
+});
+
+app.get('/api/sessions/team-series-weekends', async (req, res) => {
+    const trackName = req.query.trackName || '';
+    const season = req.query.season || '';
+
+    const result = await runQuery(`
+        MATCH (ts:TeamSeriesSession)-[:TEAM_SERIES_SESSION_TO_SESSION]->(s:Session)
+        WHERE TRUE 
+            AND s.track_name CONTAINS $trackName 
+            AND ts.season = toInteger($season) 
+            AND s.session_type = 'R'
+        RETURN s
+        ORDER BY s.track_name ASC, ts.division ASC`,
+        `Fetching team series weekends for track ${trackName} in season ${season}`,
+        { trackName, season }
+    );
+
+    const sessions = result.records.map(r => Session.fromRecord(r)).filter(s => s != undefined);
+    const completeWeekends = await Promise.all(sessions.map(session => fetchCompleteWeekendByKey(session.key_)));
+    res.json(completeWeekends);
+});
 
 //////////      Season      //////////
 app.get('/api/seasons/points-reference', async (req, res) => {
@@ -166,9 +264,92 @@ app.get('/api/seasons/points-reference', async (req, res) => {
     );
 
     const seasons = Season.fromRecords(result.records);
-    res.json(seasons);
+    res.json(seasons.map(season => season.toJSON()));
 });
 
+const apiRoutes: { [key: string]: { params: { name: string, type: string }[], nodes: string[], returns: string } } = {
+    [`/api/car-drivers/complete`]: {
+        params: [],
+        nodes: ["Driver", "Car", "CarDriver"],
+        returns: 'CarDriver[]'
+    },
+    [`/api/car-drivers/team-series`]: {
+        params: [
+            { name: 'trackNames', type: 'string' },
+            { name: 'divisions', type: 'number' },
+            { name: 'seasons', type: 'number' },
+            { name: 'sessionTypes', type: 'string' },
+            { name: 'pastNumSessions', type: 'number' }
+        ],
+        nodes: ["Driver", "Car", "CarDriver", "Session", "TeamSeriesSession"],
+        returns: 'CarDriver[]'
+    },
+    [`/api/driver/basic`]: {
+        params: [
+            { name: 'driverId', type: 'string' }
+        ],
+        nodes: ["Driver"],
+        returns: 'BasicDriver'
+    },
+    [`/api/drivers/basic`]: {
+        params: [],
+        nodes: ["Driver"],
+        returns: 'BasicDriver[]'
+    },
+    [`/api/laps`]: {
+        params: [
+            { name: 'afterDate', type: 'string' },
+            { name: 'beforeDate', type: 'string' },
+            { name: 'trackName', type: 'string' }
+        ],
+        nodes: ["Lap", "Session", "Car", "CarDriver", "Driver"],
+        returns: 'Lap[]'
+    },
+    [`/api/sessions/complete`]: {
+        params: [
+            { name: 'sessionKey', type: 'string' }
+        ],
+        nodes: ["Session", "Car", "CarDriver", "Driver", "Lap"],
+        returns: 'Session'
+    },
+    [`/api/sessions/basic-weekend`]: {
+        params: [
+            { name: 'sessionKey', type: 'string' }
+        ],
+        nodes: ["Session"],
+        returns: 'Weekend'
+    },
+    [`/api/sessions/complete-weekend`]: {
+        params: [
+            { name: 'sessionKey', type: 'string' }
+        ],
+        nodes: ["Session"],
+        returns: 'Weekend'
+    },
+    [`/api/sessions/team-series-weekends`]: {
+        params: [
+            { name: 'trackName', type: 'string' },
+            { name: 'season', type: 'string' }
+        ],
+        nodes: ["Session", "TeamSeriesSession"],
+        returns: 'Session[]'
+    },
+    [`/api/seasons/points-reference`]: {
+        params: [
+            { name: 'season', type: 'number' }
+        ],
+        nodes: ["TeamSeriesSeason", "TeamSeriesPointsReference"],
+        returns: 'Season[]'
+    }
+};
+
+app.get('/', (req, res) => {
+    res.json(apiRoutes);
+});
+
+app.get('/api', (req, res) => {
+    res.json(apiRoutes);
+});
 
 app.listen(port, () => {
     console.log(`Backend server running at ${process.env.REACT_APP_API_BASE_URL}`);

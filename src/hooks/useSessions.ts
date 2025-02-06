@@ -1,0 +1,33 @@
+import { useEffect, useRef, useState } from "react";
+import { fetchTeamSeriesWeekendsByAttrs } from "../services/SessionService";
+import { Weekend } from "../types/Weekend";
+
+
+export const useTeamSeriesWeekends = (trackName: string, season: number) => {
+    const [teamSeriesWeekends, setTeamSeriesWeekends] = useState<Weekend[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const prevDeps = useRef<{ trackName: string, season: number } | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true); // Set loading to true at the beginning
+            try {
+                const weekends = await fetchTeamSeriesWeekendsByAttrs(trackName, season);
+                setTeamSeriesWeekends(weekends);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const depsChanged = prevDeps.current === null || JSON.stringify(prevDeps.current) !== JSON.stringify({ trackName, season });
+        if (depsChanged) {
+            fetchData();
+            prevDeps.current = { trackName, season };
+        }
+    }, [trackName, season]);
+
+    return { teamSeriesWeekends, loading, error };
+};

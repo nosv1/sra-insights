@@ -4,7 +4,8 @@ import './App.css';
 // import HomePage from './pages/HomePage';
 import { DriverPage } from './pages/DriverPage';
 import { TeamSeriesAPDPlotPage } from './pages/TeamSeries/APDPlotPage';
-import { TeamSeriesLeaderboardsPage } from './pages/TeamSeries/LeaderboardsPage';
+import { LapTimeInsightsPage } from './pages/TeamSeries/LapTimeInsightsPage';
+import { RaceInsightsPage } from './pages/TeamSeries/RaceInsightsPage';
 
 const App: React.FC = () => {
   const [isTeamSeriesDropdownOpen, setIsTeamSeriesDropdownOpen] = useState(false);
@@ -32,6 +33,9 @@ const App: React.FC = () => {
                     <Link to="/team-series/lap-time-insights">Lap Time Insights</Link>
                   </li>
                   <li>
+                    <Link to="/team-series/race-insights">Race Insights</Link>
+                  </li>
+                  <li>
                     <Link to="/team-series/apd-plot">Average Percent Difference (APD) Plot</Link>
                   </li>
                 </ul>
@@ -42,9 +46,10 @@ const App: React.FC = () => {
       </nav>
       <Routes>
         <Route path="/" element={<div></div>} />
-        <Route path="/team-series/lap-time-insights" element={<TeamSeriesLeaderboardsPage />} />
-        <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
         <Route path="/driver" element={<DriverPage />} />
+        <Route path="/team-series/lap-time-insights" element={<LapTimeInsightsPage />} />
+        <Route path="/team-series/race-insights" element={<RaceInsightsPage />} />
+        <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
       </Routes>
     </Router>
   );

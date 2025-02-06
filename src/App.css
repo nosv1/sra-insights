@@ -232,12 +232,16 @@ a:visited {
 
 .arcade-leaderboard-container {
   text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
 }
 
 .arcade-leaderboard {
   display: inline-block;
   vertical-align: top;
-  width: 100%;
+  /* width: 100%; */
   max-width: 800px;
   margin: 20px;
   padding: 5px 20px;
@@ -394,4 +398,11 @@ footer {
   position: fixed;
   bottom: 0;
   width: 100%;
+}
+
+.leaderboards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
 }

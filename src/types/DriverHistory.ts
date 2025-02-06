@@ -1,3 +1,4 @@
+import { Record } from "neo4j-driver";
 import { BasicDriver } from './BasicDriver';
 import { Lap } from './Lap';
 import { SessionCar } from './SessionCar';
@@ -5,7 +6,7 @@ import { SessionCar } from './SessionCar';
 export class DriverHistory {
     basicDriver: BasicDriver | undefined;
     sessionCars: SessionCar[];
-    laps: Lap[] = [];
+    laps: Lap[];
 
     bestLap: Lap | undefined;
     bestSplit1: Lap | undefined;
@@ -20,9 +21,10 @@ export class DriverHistory {
     constructor(data: Partial<DriverHistory> = {}) {
         this.basicDriver = data.basicDriver
         this.sessionCars = data.sessionCars ?? [];
+        this.laps = data.laps ?? [];
     }
 
-    static fromRecord(record: any): DriverHistory {
+    static fromRecord(record: Record): DriverHistory {
         const basicDriver = BasicDriver.fromRecord(record);
         const sessionCar = SessionCar.fromRecord(record);
         const lap = Lap.fromRecord(record);
@@ -35,7 +37,7 @@ export class DriverHistory {
     }
 
 
-    static fromRecords(records: any[]): DriverHistory[] {
+    static fromRecords(records: Record[]): DriverHistory[] {
         let driverHistories: { [key: string]: DriverHistory } = {}; // {driver_id_car_model: DriverHistory}
 
         records.forEach(record => {

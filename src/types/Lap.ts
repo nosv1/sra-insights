@@ -1,3 +1,4 @@
+import { Node, RecordShape } from "neo4j-driver";
 import { BasicDriver } from './BasicDriver';
 import { CarDriver } from './CarDriver';
 import { Session } from './Session';
@@ -27,6 +28,10 @@ export class Lap {
     carDriver?: CarDriver;
     session?: Session;
 
+    get splits() {
+        return [this.split1, this.split2, this.split3];
+    }
+
     constructor(data: Partial<Lap> = {}) {
         this.key_ = data.key_ ?? '';
         this.carID = data.carID ?? '';
@@ -42,7 +47,7 @@ export class Lap {
         this.sessionFile = data.sessionFile ?? '';
     }
 
-    static fromNode(node: any): Lap {
+    static fromNode(node: Node): Lap {
         return new Lap({
             key_: node.properties['key_'],
             carID: node.properties['car_id'],
@@ -59,18 +64,57 @@ export class Lap {
         });
     }
 
-    static fromRecord(record: any): Lap {
-        const lap = Lap.fromNode(record._fields[record._fieldLookup['l']]);
-        lap.car = SessionCar.fromRecord(record);
-        lap.driver = BasicDriver.fromRecord(record);
-        lap.session = Session.fromRecord(record);
-        lap.carDriver = CarDriver.fromRecord(record);
+    static fromNodes(nodes: Node[]): Lap[] {
+        return nodes.map(Lap.fromNode);
+    }
+
+    static fromRecord(
+        record: RecordShape,
+        {
+            getSessionCar = false,
+            getSession = false,
+            getCarDriver = false,
+            getBasicDriver = false,
+        }: {
+            getSessionCar?: boolean,
+            getSession?: boolean,
+            getCarDriver?: boolean,
+            getBasicDriver?: boolean,
+        } = {}
+    ): Lap {
+        const lap = Lap.fromNode(record.get('l'));
+        if (getSessionCar)
+            lap.car = SessionCar.fromRecord(record);
+        if (getSession)
+            lap.session = Session.fromRecord(record);
+        if (getCarDriver)
+            lap.carDriver = CarDriver.fromRecord(record);
+        if (getBasicDriver)
+            lap.driver = BasicDriver.fromRecord(record);
         return lap;
+    }
+
+    static fromRecordWithLaps(record: RecordShape,): Lap[] {
+        let nodes = record.get('laps');
+        let laps: Lap[] = [];
+        nodes.forEach((node: Node, n_idx: number) => {
+            laps.push(Lap.fromNode(node));
+        });
+        return laps;
+    }
+
+    trySetOptionals(record: RecordShape) {
+        this.car = SessionCar.fromRecord(record);
+        this.driver = BasicDriver.fromRecord(record);
+        this.session = Session.fromRecord(record);
+        this.carDriver = CarDriver.fromRecord(record);
     }
 
     toBasicJSON() {
         return {
             key_: this.key_,
+            carID: this.carID,
+            driverId: this.driverId,
             lapNumber: this.lapNumber,
             lapTime: this.lapTime,
             split1: this.split1,
