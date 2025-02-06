@@ -1,4 +1,6 @@
+import { Node, RecordShape } from "neo4j-driver";
 import { BasicDriver } from './BasicDriver';
+import { Lap } from './Lap';
 import { Session } from './Session';
 import { SessionCar } from './SessionCar';
 
@@ -15,6 +17,28 @@ export class CarDriver {
     basicDriver?: BasicDriver;
     session?: Session;
 
+    get carDriverKey() {
+        return `${this.sessionCar?.carModel}-${this.basicDriver?.driverId}`;
+    }
+
+    get timeInPits() {
+        if (!this.timeOnTrack || !this.sessionCar?.startOffset)
+            return 0;
+        return (this.sumLaps + this.sessionCar?.startOffset) - this.timeOnTrack;
+    }
+
+    get sumLaps() {
+        if (!this.sessionCar)
+            return 0;
+        return this.laps.reduce((sum, lap) => sum + lap.lapTime, 0);
+    }
+
+    get laps() {
+        if (!this.sessionCar)
+            return [];
+        return this.sessionCar.laps.filter(lap => lap.driverId === this.driverId);
+    }
+
     constructor(data: Partial<CarDriver> = {}) {
         this.sessionFile = data.sessionFile ?? '';
         this.serverNumber = data.serverNumber ?? 0;
@@ -25,11 +49,7 @@ export class CarDriver {
         this.timeOnTrack = data.timeOnTrack ?? 0;
     }
 
-    get carDriverKey() {
-        return `${this.sessionCar?.carModel}-${this.basicDriver?.driverId}`;
-    }
-
-    static fromNode(node: any): CarDriver {
+    static fromNode(node: Node): CarDriver {
         return new CarDriver(
             {
                 sessionFile: node.properties['session_file'],
@@ -43,19 +63,44 @@ export class CarDriver {
         );
     }
 
-    static fromRecord(record: any): CarDriver | undefined {
-        const node = record._fields[record._fieldLookup['cd']];
-        if (!node) {
+    static fromRecord(
+        record: RecordShape,
+        {
+            getSessionCar = false,
+            getSessionCarLaps = false,
+            getBasicDriver = false,
+            getSession = false,
+            getSessionTeamSeriesSession = false,
+        }: {
+            getSessionCar?: boolean,
+            getSessionCarLaps?: boolean,
+            getBasicDriver?: boolean,
+            getSession?: boolean,
+            getSessionTeamSeriesSession?: boolean
+        } = {}
+    ): CarDriver | undefined {
+        let node: Node
+        try {
+            node = record.get('cd');
+        } catch (error) {
             return undefined
         }
-        let carDriver = CarDriver.fromNode(node);
-        carDriver.sessionCar = SessionCar.fromRecord(record);
-        carDriver.basicDriver = BasicDriver.fromRecord(record);
-        carDriver.session = Session.fromRecord(record);
-        return carDriver;
+        const carDriver = CarDriver.fromNode(node);
+        if (getSessionCar) {
+            carDriver.sessionCar = SessionCar.fromRecord(record);
+            if (getSessionCarLaps && carDriver.sessionCar) {
+                carDriver.sessionCar.laps = Lap.fromNodes(record.get('laps'));
+                carDriver.sessionCar.processLaps();
+            }
+        }
+        if (getBasicDriver)
+            carDriver.basicDriver = BasicDriver.fromRecord(record);
+        if (getSession)
+            carDriver.session = Session.fromRecord(record, { getTeamSeriesSession: getSessionTeamSeriesSession });
+        return carDriver
     }
 
-    toBasicJSON() {
+    toBasicJSON(): { [key: string]: any } {
         return {
             sessionFile: this.sessionFile,
             serverNumber: this.serverNumber,
@@ -68,6 +113,9 @@ export class CarDriver {
             sessionCar: this.sessionCar?.toBasicJSON(),
             basicDriver: this.basicDriver?.toBasicJSON(),
             session: this.session?.toBasicJSON(),
+            timeInPits: this.timeInPits,
+            sumLaps: this.sumLaps,
+            laps: this.laps.map(lap => lap.toBasicJSON())
         }
     }
 

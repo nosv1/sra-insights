@@ -1,3 +1,5 @@
+import { Node, RecordShape } from "neo4j-driver";
+
 export class BasicDriver {
     driverId: string;
     memberId: string;
@@ -13,7 +15,7 @@ export class BasicDriver {
         this.division = data.division ?? 0;
     }
 
-    static fromNode(node: any): BasicDriver {
+    static fromNode(node: Node): BasicDriver {
         return new BasicDriver({
             driverId: node.properties['driver_id'],
             memberId: node.properties['member_id'],
@@ -23,9 +25,11 @@ export class BasicDriver {
         });
     }
 
-    static fromRecord(record: any): BasicDriver | undefined {
-        const node = record._fields[record._fieldLookup['d']];
-        if (!node) {
+    static fromRecord(record: RecordShape): BasicDriver | undefined {
+        let node: Node
+        try {
+            node = record.get('d');
+        } catch (error) {
             return undefined;
         }
         return BasicDriver.fromNode(node);

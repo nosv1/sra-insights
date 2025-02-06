@@ -10,6 +10,7 @@ import { Footer } from '../Footer';
 import { TrackSelection } from '../TrackSelection';
 import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
+import { LapTimeLeaderboard } from './LapTimeLeaderboard';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
     const currentDateTime = new Date();
@@ -61,102 +62,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         navigate({ search: params.toString() });
     }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState]);
 
-    const lapAttr = 'lapTime';
-    laps.sort((a, b) => a[lapAttr] - b[lapAttr]);
-    const driverHistories = DriverHistory.fromLaps(laps);
-    let potentialValidP1 = Number.MAX_SAFE_INTEGER;
-    let bestValidP1 = Number.MAX_SAFE_INTEGER;
-    let potentialP1 = Number.MAX_SAFE_INTEGER;
-    let bestP1 = Number.MAX_SAFE_INTEGER;
-
-    driverHistories.sort((a, b) => {
-        if (a.potentialBestValidLap && b.potentialBestValidLap) {
-            potentialValidP1 = min([potentialValidP1, a.potentialBestValidLap, b.potentialBestValidLap]);
-            bestValidP1 = min([bestValidP1, a.bestValidLap?.lapTime ?? bestValidP1, b.bestValidLap?.lapTime ?? bestValidP1]);
-            potentialP1 = min([potentialP1, a.potentialBestLap ?? potentialP1, b.potentialBestLap ?? potentialP1]);
-            bestP1 = min([bestP1, a.bestLap?.lapTime ?? bestP1, b.bestLap?.lapTime ?? bestP1]);
-            return a.potentialBestValidLap - b.potentialBestValidLap;
-        }
-        if (a.potentialBestValidLap) {
-            return -1;
-        }
-        if (b.potentialBestValidLap) {
-            return 1;
-        }
-        return 0;
-    });
-
     const uniqueDivisions = Array
         .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
         .sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b));
-
-    const lapLink = (lap: Lap | undefined) => {
-        if (!lap) {
-            return '';
-        }
-        return `${lap.session?.sraSessionURL}#${lap.session?.sessionTypeSraWord}_${lap.car?.carId}`;
-    }
-
-    const lapPercentString = (time: number, percentAsDecimal: number) => {
-        const timeString = Lap.timeToString(time);
-        return `${timeString} (${((percentAsDecimal - 1) * 100).toFixed(2)}%)`;
-    }
-
-    const bestLapData: Data = {
-        title: 'Lap Time',
-        columns: ['Driver', 'Car', 'Potential Valid', 'Best Valid', 'Potential', 'Best'],
-        rows: driverHistories
-            .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0))
-            .map(dh =>
-                new Row([
-                    // Driver
-                    new Cell(
-                        <a href={dh.basicDriver?.sraMemberStatsURL} target="_blank" rel="noreferrer">
-                            {dh.basicDriver?.name ?? ''}
-                        </a>
-                    ),
-
-                    // Car
-                    new Cell(dh.sessionCars[0].carModel.name),
-
-                    // Potential Valid
-                    new Cell(
-                        dh.potentialBestValidLap ? lapPercentString(dh.potentialBestValidLap, dh.potentialBestValidLap / potentialValidP1) : '',
-                        `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)}`
-                    ),
-
-                    // Best Valid
-                    new Cell(
-                        <a href={lapLink(dh.bestValidLap)} target="_blank" rel="noreferrer">
-                            {dh.bestValidLap ? lapPercentString(dh.bestValidLap.lapTime, dh.bestValidLap.lapTime / bestValidP1) : ''}
-                        </a>,
-                        `Split 1: ${Lap.timeToString(dh.bestValidLap?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestValidLap?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestValidLap?.split3 ?? 0)}`
-                    ),
-
-                    // Potential
-                    new Cell(
-                        Lap.timeToString(dh.potentialBestLap ?? 0),
-                        `Split 1: ${Lap.timeToString(dh.bestSplit1?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestSplit2?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestSplit3?.split3 ?? 0)}`
-                    ),
-
-                    // Best
-                    new Cell(
-                        <a href={lapLink(dh.bestLap)} target="_blank" rel="noreferrer">
-                            {Lap.timeToString(dh.bestLap?.lapTime ?? 0)}
-                        </a>,
-                        `Split 1: ${Lap.timeToString(dh.bestLap?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestLap?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}`
-                    )
-                ])
-            )
-    };
 
     return (
         <div>
@@ -176,8 +84,11 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 {error && <p>Error loading laps: {error}</p>}
                 {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
             </div>
-            <div className="arcade-leaderboard-container">
-                <ArcadeLeaderboard data={bestLapData} />
+            <div className="leaderboards">
+                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'lapTime'} />
+                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split1'} />
+                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split2'} />
+                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split3'} />
             </div>
             <Footer />
         </div >

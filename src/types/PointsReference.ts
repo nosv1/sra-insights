@@ -1,3 +1,5 @@
+import { Node, Record } from "neo4j-driver";
+
 export class PointsReference {
     key_: string;
     points: number;
@@ -11,7 +13,7 @@ export class PointsReference {
         this.season = data.season ?? 0;
     }
 
-    static fromNode(node: any): PointsReference {
+    static fromNode(node: Node): PointsReference {
         return new PointsReference({
             key_: node.properties['key_'],
             points: node.properties['points'],
@@ -20,9 +22,11 @@ export class PointsReference {
         });
     }
 
-    static fromRecord(record: any): PointsReference | undefined {
-        const node = record._fields[record._fieldLookup['tspr']];
-        if (!node) {
+    static fromRecord(record: Record): PointsReference | undefined {
+        let node: Node;
+        try {
+            node = record.get('tspr');
+        } catch (error) {
             return undefined;
         }
         return PointsReference.fromNode(node);

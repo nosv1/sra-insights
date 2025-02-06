@@ -1,3 +1,4 @@
+import { Node, Record } from "neo4j-driver";
 import { PointsReference } from './PointsReference';
 
 export class Season {
@@ -11,16 +12,15 @@ export class Season {
         this.season = data.season ?? 0;
     }
 
-    static fromNode(node: any): Season {
+    static fromNode(node: Node): Season {
         return new Season({
             maxDivisions: node.properties['max_divisions'],
             season: node.properties['season'],
         });
     }
 
-    static fromRecord(record: any): Season {
-        const node = record._fields[record._fieldLookup['tss']];
-        let season = Season.fromNode(node);
+    static fromRecord(record: Record): Season {
+        let season = Season.fromNode(record.get('tss'));
         let pointsReference = PointsReference.fromRecord(record);
         if (pointsReference) {
             season.pointsReference[pointsReference.position] = pointsReference;
