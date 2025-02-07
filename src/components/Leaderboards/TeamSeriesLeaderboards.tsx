@@ -11,6 +11,8 @@ import { TrackSelection } from '../TrackSelection';
 import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
+import { LapAttrSelection } from './LeaderboardSelection';
+import { lapAttrs } from './LeaderboardSelection';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
     const currentDateTime = new Date();
@@ -29,28 +31,32 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const beforeDate = params.get('beforeDate');
         const trackName = params.get('trackName');
         const selectedDivisions = params.get('selectedDivisions');
+        const selectedLapAttrs = params.get('selectedLapAttrs');
         return {
             afterDate: afterDate || localTwoWeeksAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
             trackName: trackName || TeamSeriesSchedule.getCurrentRoundTrack(),
-            selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : []
+            selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
+            selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : []
         };
     };
 
-    let { afterDate, beforeDate, trackName, selectedDivisions } = getParams();
+    let params = getParams();
 
-    const [afterDateState, setAfterDate] = useState<string>(afterDate);
-    const [beforeDateState, setBeforeDate] = useState<string>(beforeDate);
-    const [trackNameState, setTrackName] = useState<string>(trackName);
-    const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(selectedDivisions);
+    const [afterDateState, setAfterDate] = useState<string>(params.afterDate);
+    const [beforeDateState, setBeforeDate] = useState<string>(params.beforeDate);
+    const [trackNameState, setTrackName] = useState<string>(params.trackName);
+    const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
+    const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState);
 
     useEffect(() => {
-        let { afterDate, beforeDate, trackName, selectedDivisions } = getParams();
-        setAfterDate(afterDate);
-        setBeforeDate(beforeDate);
-        setTrackName(trackName);
-        setSelectedDivisions(selectedDivisions);
+        let params = getParams();
+        setAfterDate(params.afterDate);
+        setBeforeDate(params.beforeDate);
+        setTrackName(params.trackName);
+        setSelectedDivisions(params.selectedDivisions);
+        setSelectedLapAttrs(params.selectedLapAttrs);
     }, [location.search]);
 
     useEffect(() => {
@@ -59,8 +65,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         params.set('beforeDate', beforeDateState);
         params.set('trackName', trackNameState);
         params.set('selectedDivisions', selectedDivisionsState.join(','));
+        params.set('selectedLapAttrs', selectedLapAttrsState.join(','));
         navigate({ search: params.toString() });
-    }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState]);
+    }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState]);
 
     const uniqueDivisions = Array
         .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
@@ -70,14 +77,15 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         <div>
             <div className="selection-area">
                 <DivSelection
-                    selectedDivisions={selectedDivisions}
+                    selectedDivisions={params.selectedDivisions}
                     setSelectedDivisions={setSelectedDivisions}
                     uniqueDivisions={uniqueDivisions}
                 />
                 <div className="leaderboard-controls">
-                    <DateSelection afterDate={afterDate} beforeDate={beforeDate} onAfterDateChange={setAfterDate} onBeforeDateChange={setBeforeDate} />
-                    <TrackSelection trackName={trackName} onTrackSelect={setTrackName} />
+                    <DateSelection afterDate={params.afterDate} beforeDate={params.beforeDate} onAfterDateChange={setAfterDate} onBeforeDateChange={setBeforeDate} />
+                    <TrackSelection trackName={params.trackName} onTrackSelect={setTrackName} />
                 </div>
+                <LapAttrSelection selectedLapAttrs={selectedLapAttrsState} setSelectedLapAttrs={setSelectedLapAttrs} />
             </div>
             <div>
                 {loading && <p>Loading...</p>}
@@ -85,10 +93,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
             </div>
             <div className="leaderboards">
-                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'lapTime'} />
-                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split1'} />
-                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split2'} />
-                <LapTimeLeaderboard laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={'split3'} />
+                {selectedLapAttrsState.map(lapAttr => (
+                    <LapTimeLeaderboard key={lapAttr} laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
+                ))}
             </div>
             <Footer />
         </div >
