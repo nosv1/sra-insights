@@ -3,6 +3,7 @@ import { ArcadeLeaderboard } from './ArcadeLeaderboard';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
 import { Data, Cell, Row } from './ArcadeLeaderboard';
+import { LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
 
 export interface LapTimeLeaderboardProps {
     laps: Lap[];
@@ -95,17 +96,6 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
         return <div>{`${timeString}`} <br></br> {`(${((percentAsDecimal - 1) * 100).toFixed(2)}%)`}</div>;
     }
 
-    const lapAttrToTitle = (lapAttr: string) => {
-        if (lapAttr === 'lapTime')
-            return 'Lap Time';
-        if (lapAttr === 'split1')
-            return 'Split 1';
-        if (lapAttr === 'split2')
-            return 'Split 2';
-        if (lapAttr === 'split3')
-            return 'Split 3';
-    }
-
     const bestValidFromLapAttr = (dh: DriverHistory, lapAttr: string) => {
         if (lapAttr === 'lapTime')
             return dh.bestValidLap;
@@ -119,16 +109,17 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
 
     const bestLapData: Data = {
-        title: `${lapAttrToTitle(lapAttr)}s`,
-        columns: lapAttr == 'lapTime' ?
-            [
+        title: `${LAP_ATTR_TO_TITLE[lapAttr]}s`,
+        columns: lapAttr == 'lapTime'
+            ? [ // Lap Time Leaderboard
                 'Driver',
                 'Car',
                 'Potential Valid',
                 'Best Valid',
                 'Potential',
                 'Best'
-            ] : [
+            ]
+            : [ // Split Leaderboard
                 'Driver',
                 'Car',
                 'Best Valid',

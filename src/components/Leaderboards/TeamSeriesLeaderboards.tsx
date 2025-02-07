@@ -12,7 +12,7 @@ import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
 import { LapAttrSelection } from './LeaderboardSelection';
-import { lapAttrs } from './LeaderboardSelection';
+import { LAP_ATTRS } from './LeaderboardSelection';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
     const currentDateTime = new Date();

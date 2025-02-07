@@ -32,7 +32,7 @@ export const DivSelection: React.FC<DivSelectionProps> = ({
                         checked={selectedDivisions.includes(division)}
                         onChange={() => handleDivisionChange(division)}
                     />
-                    {division ? `Division ${division}` : 'Retired(?)'}
+                    {division ? `Division ${division}` : 'Unclassified'}
                 </label>
             ))}
             <label>
