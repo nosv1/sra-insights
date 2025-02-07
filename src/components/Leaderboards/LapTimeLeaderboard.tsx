@@ -7,9 +7,8 @@ import { Data, Cell, Row } from './ArcadeLeaderboard';
 export interface LapTimeLeaderboardProps {
     laps: Lap[];
     selectedDivisions: number[]
-    lapAttr: 'lapTime' | 'split1' | 'split2' | 'split3'
+    lapAttr: keyof Lap;
 };
-
 
 export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
 
@@ -23,29 +22,32 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
     driverHistories.sort((a, b) => {
         const compareSplits = (a: DriverHistory, b: DriverHistory, lapAttr: 'split1' | 'split2' | 'split3') => {
-            const splitAttr = `bestValid${lapAttr.charAt(0).toUpperCase() + lapAttr.slice(1)}` as keyof DriverHistory;
+            const bestValidSplitAttr = `bestValid${lapAttr.charAt(0).toUpperCase() + lapAttr.slice(1)}` as keyof DriverHistory;
             const bestSplitAttr = `best${lapAttr.charAt(0).toUpperCase() + lapAttr.slice(1)}` as keyof DriverHistory;
 
-            if (a[splitAttr] && b[splitAttr]) {
-                let aLap: Lap = (a[splitAttr] as Lap)
-                let bLap: Lap = (b[splitAttr] as Lap)
+            const aLap = (a[bestSplitAttr] as Lap)
+            const bLap = (b[bestSplitAttr] as Lap)
+            bestP1 = Math.min(
+                bestP1,
+                aLap[lapAttr] as number,
+                bLap[lapAttr] as number
+            );
+
+            if (a[bestValidSplitAttr] && b[bestValidSplitAttr]) {
+                const aValidLap: Lap = (a[bestValidSplitAttr] as Lap)
+                const bValidLap: Lap = (b[bestValidSplitAttr] as Lap)
                 bestValidP1 = Math.min(
                     bestValidP1,
-                    aLap[lapAttr] as number,
-                    bLap[lapAttr] as number
+                    aValidLap[lapAttr] as number,
+                    bValidLap[lapAttr] as number
                 );
-                aLap = (a[bestSplitAttr] as Lap)
-                bLap = (b[bestSplitAttr] as Lap)
-                bestP1 = Math.min(
-                    bestP1,
-                    aLap[lapAttr] as number,
-                    bLap[lapAttr] as number
-                );
-                return (aLap[lapAttr] as number) - (bLap[lapAttr] as number);
+                return (aValidLap[lapAttr] as number) - (bValidLap[lapAttr] as number);
             }
-            if (a[splitAttr])
+
+            if (a[bestValidSplitAttr])
                 return -1;
-            if (b[splitAttr])
+
+            if (b[bestValidSplitAttr])
                 return 1;
             return 0;
         };
@@ -104,7 +106,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
             return 'Split 3';
     }
 
-    const bestValidFromLapAttr = (dh: DriverHistory, lapAttr: 'lapTime' | 'split1' | 'split2' | 'split3') => {
+    const bestValidFromLapAttr = (dh: DriverHistory, lapAttr: string) => {
         if (lapAttr === 'lapTime')
             return dh.bestValidLap;
         if (lapAttr === 'split1')
@@ -118,38 +120,40 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
     const bestLapData: Data = {
         title: `${lapAttrToTitle(lapAttr)}s`,
-        columns: [
-            'Driver',
-            // 'Car',
-            // 'Potential Valid', 
-            'Best Valid',
-            // 'Potential', 
-            // 'Best'
-        ],
+        columns: lapAttr == 'lapTime' ?
+            [
+                'Driver',
+                'Car',
+                'Potential Valid',
+                'Best Valid',
+                'Potential',
+                'Best'
+            ] : [
+                'Driver',
+                'Car',
+                'Best Valid',
+                'Best',
+            ],
         rows: driverHistories
             .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0))
-            .map(dh =>
-                new Row([
-                    // Driver
-                    new Cell(
+            .map(dh => {
+                const cells: { [key: string]: Cell } = {
+                    'Driver': new Cell(
                         <a href={dh.basicDriver?.sraMemberStatsURL} target="_blank" rel="noreferrer">
                             {dh.basicDriver?.name ?? ''}
                         </a>
                     ),
 
-                    // // Car
-                    // new Cell(dh.sessionCars[0].carModel.name),
+                    'Car': new Cell(dh.sessionCars[0].carModel.name),
 
-                    // // Potential Valid
-                    // new Cell(
-                    //     dh.potentialBestValidLap ? lapPercentString(dh.potenti</a>alBestValidLap, dh.potentialBestValidLap / potentialValidP1) : '',
-                    //     `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)}\n` +
-                    //     `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)}\n` +
-                    //     `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)}`
-                    // ),
+                    'Potential Valid': new Cell(
+                        dh.potentialBestValidLap ? lapPercentString(dh.potentialBestValidLap, dh.potentialBestValidLap / potentialValidP1) : '',
+                        `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)}`
+                    ),
 
-                    // Best Valid
-                    new Cell(
+                    'Best Valid': new Cell(
                         <a href={lapLink(dh.bestValidLap)} target="_blank" rel="noreferrer">
                             {bestValidFromLapAttr(dh, lapAttr)
                                 ? lapPercentString(
@@ -165,25 +169,31 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                         `Lap Time: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.lapTime ?? 0)}`
                     ),
 
-                    // // Potential
-                    // new Cell(
-                    //     Lap.timeToString(dh.potentialBestLap ?? 0),
-                    //     `Split 1: ${Lap.timeToString(dh.bestSplit1?.split1 ?? 0)}\n` +
-                    //     `Split 2: ${Lap.timeToString(dh.bestSplit2?.split2 ?? 0)}\n` +
-                    //     `Split 3: ${Lap.timeToString(dh.bestSplit3?.split3 ?? 0)}`
-                    // ),
+                    'Potential': new Cell(
+                        Lap.timeToString(dh.potentialBestLap ?? 0),
+                        `Split 1: ${Lap.timeToString(dh.bestSplit1?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(dh.bestSplit2?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(dh.bestSplit3?.split3 ?? 0)}`
+                    ),
 
-                    // // Best
-                    // new Cell(
-                    //     <a href={lapLink(dh.bestLap)} target="_blank" rel="noreferrer">
-                    //         {Lap.timeToString(dh.bestLap?.[lapAttr] as number ?? 0)}
-                    //     </a>,
-                    //     `Split 1: ${Lap.timeToString(dh.bestLap?.split1 ?? 0)}\n` +
-                    //     `Split 2: ${Lap.timeToString(dh.bestLap?.split2 ?? 0)}\n` +
-                    //     `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}`
-                    // )
-                ])
-            )
+                    'Best': new Cell(
+                        <a href={lapLink(dh.bestLap)} target="_blank" rel="noreferrer">
+                            {Lap.timeToString(dh.bestLap?.[lapAttr] as number ?? 0)}
+                        </a>,
+                        `Split 1: ${Lap.timeToString(dh.bestLap?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(dh.bestLap?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}`
+                    )
+
+                };
+
+                if (lapAttr != 'lapTime') {
+                    delete cells['Potential Valid'];
+                    delete cells['Potential'];
+                }
+
+                return new Row(Object.values(cells));
+            })
     };
 
     return (

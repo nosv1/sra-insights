@@ -171,6 +171,7 @@ a:visited {
 
 .leaderboard-controls {
   margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .leaderboard-controls,
@@ -405,4 +406,37 @@ footer {
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
+}
+
+.column-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.column-selection label {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #ffcc00;
+  font-size: 16px;
+}
+
+.column-selection input {
+  margin-right: 5px;
+}
+
+.column-selection-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 20px auto;
+  padding: 10px;
+  background-color: #444;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 1200px;
+  width: calc(100% - 80px);
 }
