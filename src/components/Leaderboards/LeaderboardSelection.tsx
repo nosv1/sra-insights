@@ -1,5 +1,5 @@
-export const lapAttrs = ['lapTime', 'split1', 'split2', 'split3'];
-const lapAttrToTitle: { [key: string]: string } = {
+export const LAP_ATTRS = ['lapTime', 'split1', 'split2', 'split3'];
+export const LAP_ATTR_TO_TITLE: { [key: string]: string } = {
     'lapTime': 'Lap Time',
     'split1': 'Split 1',
     'split2': 'Split 2',
@@ -20,34 +20,34 @@ export const LapAttrSelection: React.FC<LapAttrSelectionProps> = ({
             const newSelected = prev.includes(lapAttr)
                 ? prev.filter(la => la !== lapAttr)
                 : [...prev, lapAttr];
-            return lapAttrs.filter(attr => newSelected.includes(attr));
+            return LAP_ATTRS.filter(attr => newSelected.includes(attr));
         });
     };
 
     const handleToggleSelectAll = () => {
-        if (selectedLapAttrs.length == lapAttrs.length) {
+        if (selectedLapAttrs.length == LAP_ATTRS.length) {
             setSelectedLapAttrs([]);
         } else {
-            setSelectedLapAttrs(lapAttrs);
+            setSelectedLapAttrs(LAP_ATTRS);
         }
     };
 
     return (
         <div className="div-selection">
-            {lapAttrs.map(lapAttr => (
+            {LAP_ATTRS.map(lapAttr => (
                 <label key={lapAttr}>
                     <input
                         type="checkbox"
                         checked={selectedLapAttrs.includes(lapAttr)}
                         onChange={() => handleLapAttrChange(lapAttr)}
                     />
-                    {lapAttrToTitle[lapAttr]}
+                    {LAP_ATTR_TO_TITLE[lapAttr]}
                 </label>
             ))}
             <label>
                 <input
                     type="checkbox"
-                    checked={selectedLapAttrs.length == lapAttrs.length}
+                    checked={selectedLapAttrs.length == LAP_ATTRS.length}
                     onChange={handleToggleSelectAll}
                 />
                 Select All

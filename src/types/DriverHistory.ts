@@ -61,7 +61,7 @@ export class DriverHistory {
                 basicDriver: lap.driver,
                 sessionCars: lap.car ? [lap.car] : [],
             });
-            const key = `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel}`;
+            const key = `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel.modelId}`;
             if (!driverHistories[key]) {
                 driverHistories[key] = driverHistory;
             }
