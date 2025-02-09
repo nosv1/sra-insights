@@ -1,4 +1,5 @@
 export const LAP_ATTRS = ['lapTime', 'split1', 'split2', 'split3'];
+export const SPLIT_ATTRS = ['split1', 'split2', 'split3'];
 export const LAP_ATTR_TO_TITLE: { [key: string]: string } = {
     'lapTime': 'Lap Time',
     'split1': 'Split 1',
@@ -32,6 +33,15 @@ export const LapAttrSelection: React.FC<LapAttrSelectionProps> = ({
         }
     };
 
+    const handleToggleSelectSplits = () => {
+        const allSplitsSelected = SPLIT_ATTRS.every(split => selectedLapAttrs.includes(split));
+        if (allSplitsSelected) {
+            setSelectedLapAttrs(prev => prev.filter(attr => !SPLIT_ATTRS.includes(attr)));
+        } else {
+            setSelectedLapAttrs(prev => [...new Set([...prev, ...SPLIT_ATTRS])]);
+        }
+    };
+
     return (
         <div className="div-selection">
             {LAP_ATTRS.map(lapAttr => (
@@ -51,6 +61,14 @@ export const LapAttrSelection: React.FC<LapAttrSelectionProps> = ({
                     onChange={handleToggleSelectAll}
                 />
                 Select All
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={SPLIT_ATTRS.every(split => selectedLapAttrs.includes(split))}
+                    onChange={handleToggleSelectSplits}
+                />
+                Select All Splits
             </label>
         </div>
     )
