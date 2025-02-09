@@ -14,12 +14,12 @@ const app = express();
 const port = process.env.PORT || 5000; // You can change this
 
 app.use(cors());  // This allows all origins, which is fine for development
-// app.use(cors({ origin: `${process.env.REACT_APP_API_BASE_URL}` }));  // This is more secure for production
+// app.use(cors({ origin: `${process.env.REACT_APP_API_URL}` }));  // This is more secure for production
 
 dotenv.config();
 
 const neoDriver = neo4j.driver(
-    `bolt://${process.env.NEO_DB_HOST}:7687`,
+    `bolt://${process.env.REACT_APP_NEO_DB_HOST}:7687`,
     neo4j.auth.basic("", ""),
     { disableLosslessIntegers: true }
 );
@@ -352,5 +352,5 @@ app.get('/api', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Backend server running at ${process.env.REACT_APP_API_BASE_URL}`);
+    console.log(`Backend server running at ${process.env.REACT_APP_API_URL}`);
 });

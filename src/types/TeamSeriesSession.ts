@@ -49,7 +49,7 @@ export class TeamSeriesSession {
 
     toJSON() {
         return {
-            ... this.toBasicJSON(),
+            ...this.toBasicJSON(),
         };
     }
 }

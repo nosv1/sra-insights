@@ -190,7 +190,7 @@ export const APDPlot: React.FC = () => {
         }
 
         return {
-            x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${groupedDriver.basicDriver?.division?.toFixed(1)} | ${groupedDriver.basicDriver?.name}</a>`],
+            x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${driver?.division?.toFixed(1)} | ${driver?.name}</a>`],
             y: [sortBy == 'slope' ? groupedDriver.slope * 100 : groupedDriver.tsAvgPercentDiff * 100],
             type: 'bar',
             // orientation: 'h',

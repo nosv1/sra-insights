@@ -86,6 +86,10 @@ export class DriverHistory {
         return this.bestValidSplit1?.split1 + this.bestValidSplit2?.split2 + this.bestValidSplit3?.split3;
     }
 
+    get validLaps() {
+        return this.laps.filter(lap => lap.isValidForBest);
+    }
+
     updateLaps(lap: Lap) {
         this.laps.push(lap);
 
