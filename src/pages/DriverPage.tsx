@@ -40,6 +40,7 @@ export const DriverPage: React.FC = () => {
                 selectedDriver={selectedDriver}
             />
             {selectedDriver && <p className="selected-driver">Selected Driver: {selectedDriver.name} {selectedDriver.driverId}</p>}
+            {selectedDriver ? <pre>{JSON.stringify(selectedDriver, null, 2)}</pre> : ''}
             <Footer />
         </div>
     );

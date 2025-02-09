@@ -34,9 +34,7 @@ nav ul {
 
 nav ul li {
   display: inline-block;
-  /* Changed from inline to inline-block */
   position: relative;
-  /* Added for dropdown positioning */
   margin-right: 10px;
 }
 
@@ -119,7 +117,6 @@ a,
 a:visited {
   color: #ff4d4d;
 }
-
 
 .driver-search-container {
   display: flex;
@@ -280,6 +277,12 @@ a:visited {
 .arcade-leaderboard td:nth-child(2),
 .arcade-leaderboard th:nth-child(2) {
   text-align: left;
+  min-width: 100px;
+}
+
+.arcade-leaderboard tbody tr:hover {
+  cursor: pointer;
+  background-color: #777;
 }
 
 .plot {
@@ -439,4 +442,37 @@ footer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   max-width: 1200px;
   width: calc(100% - 80px);
+}
+
+.driver-hover-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.driver-hover-dropdown .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #333;
+  min-width: 160px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  padding: 10px;
+  border-radius: 5px;
+  color: #e0e0e0;
+}
+
+.driver-hover-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.driver-hover-dropdown .dropdown-content a {
+  color: #ff4d4d;
+  text-decoration: none;
+  display: block;
+  padding: 5px 0;
+}
+
+.driver-hover-dropdown .dropdown-content a:hover {
+  background-color: #555;
+  border-radius: 3px;
 }

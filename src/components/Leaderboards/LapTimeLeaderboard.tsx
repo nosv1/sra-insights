@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArcadeLeaderboard } from './ArcadeLeaderboard';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
 import { Data, Cell, Row } from './ArcadeLeaderboard';
 import { LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
+import { DriverHover } from './DriverHover';
+import { BasicDriver } from '../../types/BasicDriver';
+import { LapsOverTimePlot } from './LapsOverTimePlot';
 
 export interface LapTimeLeaderboardProps {
     laps: Lap[];
@@ -12,8 +15,9 @@ export interface LapTimeLeaderboardProps {
 };
 
 export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
+    const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
 
-    laps.sort((a, b) => (a[lapAttr] as number) - (b[lapAttr] as number));
+    // laps.sort((a, b) => (a[lapAttr] as number) - (b[lapAttr] as number));
     const driverHistories = DriverHistory.fromLaps(laps);
 
     let potentialValidP1 = Number.MAX_SAFE_INTEGER;
@@ -53,7 +57,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
             return 0;
         };
 
-        if (lapAttr == 'lapTime') {
+        if (lapAttr === 'lapTime') {
             if (a.potentialBestValidLap && b.potentialBestValidLap) {
                 potentialValidP1 = Math.min(potentialValidP1, a.potentialBestValidLap, b.potentialBestValidLap);
                 bestValidP1 = Math.min(
@@ -77,7 +81,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                 return -1;
             if (b.potentialBestValidLap)
                 return 1;
-        } else if (lapAttr == 'split1' || lapAttr == 'split2' || lapAttr == 'split3') {
+        } else if (lapAttr === 'split1' || lapAttr === 'split2' || lapAttr === 'split3') {
             return compareSplits(a, b, lapAttr);
         }
 
@@ -110,9 +114,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
     const bestLapData: Data = {
         title: `${LAP_ATTR_TO_TITLE[lapAttr]}s`,
-        columns: lapAttr == 'lapTime'
+        columns: lapAttr === 'lapTime'
             ? [ // Lap Time Leaderboard
-                'Driver',
+                'Div | Driver',
                 'Car',
                 'Potential Valid',
                 'Best Valid',
@@ -120,19 +124,27 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                 'Best'
             ]
             : [ // Split Leaderboard
-                'Driver',
+                'Div | Driver',
                 'Car',
                 'Best Valid',
                 'Best',
             ],
+        defaultColumns: ['Div | Driver', 'Best Valid'],
         rows: driverHistories
-            .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0))
+            .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0) && dh.bestValidLap)
             .map(dh => {
                 const cells: { [key: string]: Cell } = {
-                    'Driver': new Cell(
-                        <a href={dh.basicDriver?.sraMemberStatsURL} target="_blank" rel="noreferrer">
-                            {dh.basicDriver?.name ?? ''}
-                        </a>
+                    'Div | Driver': new Cell(
+                        <div className="driver-hover-dropdown" onMouseEnter={() => setHoveredDriver(dh.basicDriver)} onMouseLeave={() => setHoveredDriver(undefined)}>
+                            <a
+                                href={dh.basicDriver?.sraMemberStatsURL}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {`${dh.basicDriver?.division.toFixed(1)} | ${dh.basicDriver?.name}`}
+                            </a>
+                            {hoveredDriver === dh.basicDriver && <DriverHover driver={hoveredDriver} />}
+                        </div>
                     ),
 
                     'Car': new Cell(dh.sessionCars[0].carModel.name),
@@ -178,12 +190,12 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
                 };
 
-                if (lapAttr != 'lapTime') {
+                if (lapAttr !== 'lapTime') {
                     delete cells['Potential Valid'];
                     delete cells['Potential'];
                 }
 
-                return new Row(Object.values(cells));
+                return new Row(Object.values(cells), <LapsOverTimePlot driverHistory={dh} lapAttr={lapAttr} />);
             })
     };
 

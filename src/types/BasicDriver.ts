@@ -52,6 +52,16 @@ export class BasicDriver {
         return `https://www.simracingalliance.com/member_stats/?member=${this.memberId}`;
     }
 
+    get sraInsightsURL(): string {
+        // http://localhost:3000/driver?driverId=S76561198368453660
+        return `${process.env.REACT_APP_URL}/driver?driverId=${this.driverId}`;
+    }
+
+    get cjaURL(): string {
+        // https://coach.jeffries.academy/sra/driver/1f74453a2c49f8a748741fadebaff4c7a5df20a11ed3c847662e294a6cbceec5
+        return `https://coach.jeffries.academy/sra/driver/${this.memberId}`;
+    }
+
     toBasicJSON() {
         return {
             // These are the properties of the class
@@ -65,7 +75,9 @@ export class BasicDriver {
             raceDivision: this.raceDivision,
             isSilver: this.isSilver,
             name: this.name,
-            sraMemberStatsURL: this.sraMemberStatsURL
+            sraMemberStatsURL: this.sraMemberStatsURL,
+            sraInsightsURL: this.sraInsightsURL,
+            cjaURL: this.cjaURL,
         }
     }
 
