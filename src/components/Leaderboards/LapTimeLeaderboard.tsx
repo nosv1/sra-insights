@@ -129,7 +129,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                 'Best Valid',
                 'Best',
             ],
-        defaultColumns: ['Div | Driver', 'Best Valid'],
+        defaultColumns: lapAttr === 'lapTime' ? ['Div | Driver', 'Potential Valid', 'Best Valid'] : ['Div | Driver', 'Best Valid'],
         rows: driverHistories
             .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0) && dh.bestValidLap)
             .map(dh => {
