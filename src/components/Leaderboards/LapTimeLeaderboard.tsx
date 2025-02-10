@@ -9,16 +9,13 @@ import { BasicDriver } from '../../types/BasicDriver';
 import { LapsOverTimePlot } from './LapsOverTimePlot';
 
 export interface LapTimeLeaderboardProps {
-    laps: Lap[];
+    driverHistories: DriverHistory[];
     selectedDivisions: number[]
     lapAttr: keyof Lap;
 };
 
-export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
+export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHistories, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
-
-    // laps.sort((a, b) => (a[lapAttr] as number) - (b[lapAttr] as number));
-    const driverHistories = DriverHistory.fromLaps(laps);
 
     let potentialValidP1 = Number.MAX_SAFE_INTEGER;
     let bestValidP1 = Number.MAX_SAFE_INTEGER;
@@ -111,7 +108,6 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
             return dh.bestValidSplit3;
     }
 
-
     const bestLapData: Data = {
         title: `${LAP_ATTR_TO_TITLE[lapAttr]}s`,
         columns: lapAttr === 'lapTime'
@@ -151,9 +147,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
 
                     'Potential Valid': new Cell(
                         dh.potentialBestValidLap ? lapPercentString(dh.potentialBestValidLap, dh.potentialBestValidLap / potentialValidP1) : '',
-                        `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)}`
+                        `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)} (set ${dh.bestValidSplit1?.session?.timeAgo})\n` +
+                        `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)} (set ${dh.bestValidSplit2?.session?.timeAgo})\n` +
+                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)} (set ${dh.bestValidSplit3?.session?.timeAgo})\n`
                     ),
 
                     'Best Valid': new Cell(
@@ -168,15 +164,14 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                         `Split 1: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
                         `Split 2: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
                         `Split 3: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
-                        `-----\n` +
-                        `Lap Time: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.lapTime ?? 0)}`
+                        `Set ${dh.bestValidLap?.session?.timeAgo}`
                     ),
 
                     'Potential': new Cell(
                         Lap.timeToString(dh.potentialBestLap ?? 0),
-                        `Split 1: ${Lap.timeToString(dh.bestSplit1?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestSplit2?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestSplit3?.split3 ?? 0)}`
+                        `Split 1: ${Lap.timeToString(dh.bestSplit1?.split1 ?? 0)} (set ${dh.bestSplit1?.session?.timeAgo})\n` +
+                        `Split 2: ${Lap.timeToString(dh.bestSplit2?.split2 ?? 0)} (set ${dh.bestSplit2?.session?.timeAgo})\n` +
+                        `Split 3: ${Lap.timeToString(dh.bestSplit3?.split3 ?? 0)} (set ${dh.bestSplit3?.session?.timeAgo})\n`
                     ),
 
                     'Best': new Cell(
@@ -185,7 +180,8 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ laps, se
                         </a>,
                         `Split 1: ${Lap.timeToString(dh.bestLap?.split1 ?? 0)}\n` +
                         `Split 2: ${Lap.timeToString(dh.bestLap?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}`
+                        `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}\n` +
+                        `Set ${dh.bestLap?.session?.timeAgo}`
                     )
 
                 };
