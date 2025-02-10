@@ -49,6 +49,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
+    const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
 
     useEffect(() => {
         let params = getParams();
@@ -77,7 +78,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 <DivSelection
                     selectedDivisions={params.selectedDivisions}
                     setSelectedDivisions={setSelectedDivisions}
-                    uniqueDivisions={uniqueDivisions}
+                    uniqueDivisions={uniqueDivisionsState}
                 />
                 <div className="leaderboard-controls">
                     <DateSelection afterDate={params.afterDate} beforeDate={params.beforeDate} onAfterDateChange={setAfterDate} onBeforeDateChange={setBeforeDate} />
