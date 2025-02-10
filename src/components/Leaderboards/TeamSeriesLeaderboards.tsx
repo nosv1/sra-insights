@@ -48,8 +48,8 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [trackNameState, setTrackName] = useState<string>(params.trackName);
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
-    const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
     const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
+    const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
 
     useEffect(() => {
         let params = getParams();
