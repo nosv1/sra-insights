@@ -7,6 +7,7 @@ import { CarDriver } from '../../types/CarDriver';
 import { Session } from '../../types/Session';
 import { SRADivColor } from '../../utils/SRADivColor';
 import { SelectionArea } from './SelectionArea';
+import { DriverHistory } from '../../types/DriverHistory';
 
 export const APDPlot: React.FC = () => {
     const location = useLocation();
@@ -81,75 +82,40 @@ export const APDPlot: React.FC = () => {
     const { carDrivers, loading, error } = useTeamSeriesCarDrivers(trackNames, divisions, seasonsState, sessionTypes, pastNumSessionsState);
 
     const uniqueDivisions = Array.from(new Set(carDrivers.map(cd => cd.basicDriver?.raceDivision ?? 0)));
+    const driverHistories = DriverHistory.fromCarDrivers(carDrivers, true);
 
     let minSlope = Number.POSITIVE_INFINITY;
     let maxSlope = Number.NEGATIVE_INFINITY;
     let divDrivers: { [key: number]: { [key: string]: any } } = {}; // { div: { driverId: { ... } }
     let divMinMaxAPDs: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
 
-    const groupedDrivers = carDrivers.reduce((acc, carDriver) => {
-        if (!carDriver.basicDriver) return acc;
-        if (!carDriver.sessionCar) return acc;
+    driverHistories.forEach(driverHistory => {
+        if (!driverHistory.basicDriver) return;
 
-        const driverId = carDriver.basicDriver.driverId;
-        if (!driverId) return acc;
+        if (!driverHistory.tsAvgPercentDiff) return;
 
-        if (!acc[driverId] && carDriver.sessionCar.tsAvgPercentDiff !== null) {
-            acc[driverId] = {
-                basicDriver: carDriver.basicDriver,
-                tsAvgPercentDiff: 0,
-                slope: 0,
-                sessions: [],
-                tsAvgPercentDiffs: [],
-                avgPercentDiffs: [],
-            };
-        }
+        const driverId = driverHistory.basicDriver.driverId;
+        if (!driverId) return;
 
-        if (carDriver.sessionCar.tsAvgPercentDiff == null) {
-            return acc;
-        }
+        minSlope = Math.min(minSlope, driverHistory.apdSlope);
+        maxSlope = Math.max(maxSlope, driverHistory.apdSlope);
 
-        if (carDriver.session) {
-            acc[driverId].sessions.push(carDriver.session);
-        }
-
-        if (carDriver.sessionCar?.avgPercentDiff !== null) {
-            acc[driverId].avgPercentDiffs.push(carDriver.sessionCar.avgPercentDiff);
-        }
-
-        acc[driverId].tsAvgPercentDiffs.push(carDriver.sessionCar.tsAvgPercentDiff);
-        acc[driverId].tsAvgPercentDiff = acc[driverId].tsAvgPercentDiffs.reduce((acc, val) => acc + val, 0) / acc[driverId].tsAvgPercentDiffs.length;
-
-        const linearRegression = ss.linearRegression(acc[driverId].sessions.map((s, idx) => [idx, acc[driverId].tsAvgPercentDiffs[idx]]));
-        acc[driverId].slope = -linearRegression.m;
-        minSlope = Math.min(minSlope, acc[driverId].slope);
-        maxSlope = Math.max(maxSlope, acc[driverId].slope);
-
-        const division = acc[driverId].basicDriver?.raceDivision ?? 0;
+        const division = driverHistory.basicDriver?.raceDivision ?? 0;
         if (!divDrivers[division]) {
             divDrivers[division] = {};
         }
-        divDrivers[division][driverId] = acc[driverId];
+        divDrivers[division][driverId] = driverHistory;
 
         if (!divMinMaxAPDs[division]) {
             divMinMaxAPDs[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
         }
-        divMinMaxAPDs[division].min = Math.min(divMinMaxAPDs[division].min, acc[driverId].tsAvgPercentDiff);
-        divMinMaxAPDs[division].max = Math.max(divMinMaxAPDs[division].max, acc[driverId].tsAvgPercentDiff);
+        divMinMaxAPDs[division].min = Math.min(divMinMaxAPDs[division].min, driverHistory.tsAvgPercentDiff);
+        divMinMaxAPDs[division].max = Math.max(divMinMaxAPDs[division].max, driverHistory.tsAvgPercentDiff);
+    });
 
-        return acc;
-    }, {} as Record<string, {
-        basicDriver: CarDriver['basicDriver'],
-        tsAvgPercentDiff: number,
-        slope: number,
-        sessions: Session[],
-        tsAvgPercentDiffs: number[],
-        avgPercentDiffs: number[],
-    }>);
-
-    const filteredCarDrivers = Object.values(groupedDrivers)
-        .filter(driver => (selectedDivisions.includes(driver.basicDriver?.raceDivision ?? 0)
-            && (driver.sessions.length >= minNumSessions))
+    const filteredCarDrivers = driverHistories
+        .filter(driverHistory => (selectedDivisions.includes(driverHistory.basicDriver?.raceDivision ?? 0)
+            && (driverHistory.sessions.length >= minNumSessions))
         );
 
     // sort by apd
@@ -158,7 +124,7 @@ export const APDPlot: React.FC = () => {
     }
     // sort by slope
     else if (sortBy === 'slope') {
-        filteredCarDrivers.sort((a, b) => a.slope - b.slope);
+        filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
     }
 
     // sort by division
@@ -170,20 +136,18 @@ export const APDPlot: React.FC = () => {
 
     let insertIdxs: { [key: number]: number } = {};
 
-    const plotData = filteredCarDrivers.map((groupedDriver, gd_idx) => {
-        const driver = groupedDriver.basicDriver;
-        const divisionColor = SRADivColor.fromDivision(groupedDriver.basicDriver?.raceDivision ?? 0).darken().darken().darken();
+    const plotData = filteredCarDrivers.map((driverHistory, gd_idx) => {
+        const driver = driverHistory.basicDriver;
+        const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
         const slopeColor = divisionColor.brighten(
-            1 - (groupedDriver.slope - minSlope) / (maxSlope - minSlope)
+            1 - (driverHistory.apdSlope - minSlope) / (maxSlope - minSlope)
         )
         const apdColor = divisionColor.brighten(
-            1 - (groupedDriver.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
+            1 - (driverHistory.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
             / (divMinMaxAPDs[driver?.raceDivision ?? 0].max - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
         );
 
         const barColor = sortBy == 'slope' ? apdColor : slopeColor;
-
-        // const driverColor = driver?.isSilver && false ? divisionColor.applySilverTint() : divisionColor;
 
         if (insertIdxs[driver?.raceDivision ?? 0] === undefined) {
             insertIdxs[driver?.raceDivision ?? 0] = gd_idx;
@@ -191,23 +155,22 @@ export const APDPlot: React.FC = () => {
 
         return {
             x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${driver?.division?.toFixed(1)} | ${driver?.name}</a>`],
-            y: [sortBy == 'slope' ? groupedDriver.slope * 100 : groupedDriver.tsAvgPercentDiff * 100],
+            y: [sortBy == 'slope' ? driverHistory.apdSlope * 100 : driverHistory.tsAvgPercentDiff * 100],
             type: 'bar',
-            // orientation: 'h',
-            name: `${groupedDriver.basicDriver?.division?.toFixed(1)} | ${groupedDriver.basicDriver?.name}`,
+            name: `${driverHistory.basicDriver?.division?.toFixed(1)} | ${driverHistory.basicDriver?.name}`,
             marker: {
                 color: barColor.toRgba(),
                 line: {
                     color: barColor.toRgba(),
                 },
             },
-            text: `${driver?.division} | ${driver?.name}: ${(groupedDriver.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
-                + `Slope: ${(groupedDriver.slope * 100).toFixed(3)}%<br>`
-                + groupedDriver.sessions
+            text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
+                + `Slope: ${(driverHistory.apdSlope * 100).toFixed(3)}%<br>`
+                + driverHistory.sessions
                     .map((s, s_idx) => `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
-                        + `Car APD: ${(groupedDriver.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
+                        + `Car APD: ${(driverHistory.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
                         + `Div APD: ${(s.teamSeriesSession?.avgPercentDiff !== undefined ? (s.teamSeriesSession.avgPercentDiff * 100).toFixed(3) : 'N/A')}%   |   `
-                        + `TS APD: ${(groupedDriver.tsAvgPercentDiffs[s_idx] * 100).toFixed(3)}%`
+                        + `TS APD: ${(driverHistory.tsAvgPercentDiffs[s_idx] * 100).toFixed(3)}%`
                     )
                     .join('<br>'),
         };

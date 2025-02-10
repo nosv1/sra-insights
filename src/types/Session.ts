@@ -25,6 +25,25 @@ export class Session {
         return (this.sessionType === 'R' ? 'race' : this.sessionType === 'Q' ? 'qual' : 'practice')
     }
 
+    get timeAgo(): string {
+        const now = new Date();
+        const diff = now.getTime() - this.finishTime.getTime();
+        const diffSeconds = Math.floor(diff / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffDays > 1) {
+            return `${diffDays} days ago`;
+        } else if (diffHours > 1) {
+            return `${diffHours} hours ago`;
+        } else if (diffMinutes > 1) {
+            return `${diffMinutes} minutes ago`;
+        } else {
+            return `${diffSeconds} seconds ago`;
+        }
+    }
+
     constructor(data: Partial<Session> = {}) {
         this.key_ = data.key_ ?? '';
         this.trackName = data.trackName ?? '';
@@ -139,6 +158,7 @@ export class Session {
             trackName: this.trackName,
             sessionType: this.sessionType,
             finishTime: this.finishTime,
+            timeAgo: this.timeAgo,
             sessionFile: this.sessionFile,
             serverNumber: this.serverNumber,
             serverName: this.serverName,

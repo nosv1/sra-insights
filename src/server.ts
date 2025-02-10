@@ -39,6 +39,13 @@ async function runQuery(query: string, message: string, params: any = {}) {
     return result;
 }
 
+const stringToArray = (str: string, toType: any) => {
+    if (!str) {
+        return [];
+    }
+    return str.split(',').map(toType);
+}
+
 //////////      Car Driver      //////////
 app.get('/api/car-drivers/complete', async (req, res) => {
     const result = await runQuery(
@@ -57,13 +64,6 @@ app.get('/api/car-drivers/complete', async (req, res) => {
 });
 
 app.get('/api/car-drivers/team-series', async (req, res) => {
-    const stringToArray = (str: string, toType: any) => {
-        if (!str) {
-            return [];
-        }
-        return str.split(',').map(toType);
-    }
-
     const trackNames = stringToArray(req.query.trackNames as string, String);
     const divisions = stringToArray(req.query.divisions as string, Number);
     const seasons = stringToArray(req.query.seasons as string, Number);
@@ -143,6 +143,7 @@ app.get('/api/laps', async (req, res) => {
     const afterDate = req.query.afterDate || '1970-01-01';
     const beforeDate = req.query.beforeDate || '9999-12-31';
     const trackName = req.query.trackName || '';
+    const carGroups = stringToArray(req.query.carGroups as string, String);
 
     const result = await runQuery(`
         MATCH (l:Lap)-[:LAP_TO_SESSION]->(s:Session)
@@ -153,10 +154,11 @@ app.get('/api/laps', async (req, res) => {
             AND s.finish_time >= datetime($afterDate)
             AND s.finish_time < datetime($beforeDate)
             AND s.track_name CONTAINS $trackName
+            AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
         RETURN l, s, c, cd, d
         ORDER BY s.finish_time ASC, l.lap_number ASC`,
         `Fetching laps after \`${afterDate}\`, before \`${beforeDate}\`, at track \`${trackName}\``,
-        { afterDate, beforeDate, trackName }
+        { afterDate, beforeDate, trackName, carGroups }
     );
 
     const lapsJSON = result.records.map(record =>
@@ -300,7 +302,8 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
         params: [
             { name: 'afterDate', type: 'string' },
             { name: 'beforeDate', type: 'string' },
-            { name: 'trackName', type: 'string' }
+            { name: 'trackName', type: 'string' },
+            { name: 'carGroups', type: 'string[]' }
         ],
         nodes: ["Lap", "Session", "Car", "CarDriver", "Driver"],
         returns: 'Lap[]'
