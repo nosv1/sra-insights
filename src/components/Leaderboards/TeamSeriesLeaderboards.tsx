@@ -70,6 +70,12 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         navigate({ search: params.toString() });
     }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState]);
 
+    useEffect(() => {
+        setUniqueDivisions(Array
+            .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
+            .sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b)));
+    }, [laps]);
+
     const driverHistories = DriverHistory.fromLaps(laps);
 
     return (
