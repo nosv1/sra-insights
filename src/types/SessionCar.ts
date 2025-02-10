@@ -7,6 +7,7 @@ export class SessionCar {
     key_: string;
     carId: number;
     carModel: CarModel;
+    carGroup: string;
     carNumber: number;
     finishPosition: number;
     totalTime: number; // this is probably time in control of car, excluding when RTG or car is locked from control (still includes pit time)
@@ -50,6 +51,7 @@ export class SessionCar {
         this.key_ = data.key_ ?? '';
         this.carId = data.carId ?? 0;
         this.carModel = data.carModel ?? new CarModel();
+        this.carGroup = data.carGroup ?? '';
         this.carNumber = data.carNumber ?? 0;
         this.finishPosition = data.finishPosition ?? 0;
         this.totalTime = data.totalTime ?? 0;
@@ -70,6 +72,7 @@ export class SessionCar {
             key_: node.properties['key_'],
             carId: node.properties['car_id'],
             carModel: CarModel.fromModelId(node.properties['car_model']),
+            carGroup: node.properties['car_group'],
             carNumber: node.properties['car_number'],
             finishPosition: node.properties['finish_position'],
             totalTime: node.properties['total_time'],
@@ -178,6 +181,7 @@ export class SessionCar {
             key_: this.key_,
             carId: this.carId,
             carModel: this.carModel.toBasicJSON(),
+            carGroup: this.carGroup,
             carNumber: this.carNumber,
             finishPosition: this.finishPosition,
             totalTime: this.totalTime,

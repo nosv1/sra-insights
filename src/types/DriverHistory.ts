@@ -1,22 +1,31 @@
 import { Record } from "neo4j-driver";
+import * as ss from 'simple-statistics';
 import { BasicDriver } from './BasicDriver';
+import { CarDriver } from './CarDriver';
 import { Lap } from './Lap';
+import { Session } from './Session';
 import { SessionCar } from './SessionCar';
 
 export class DriverHistory {
-    basicDriver: BasicDriver | undefined;
+    basicDriver?: BasicDriver;
     sessionCars: SessionCar[];
     laps: Lap[];
 
-    bestLap: Lap | undefined;
-    bestSplit1: Lap | undefined;
-    bestSplit2: Lap | undefined;
-    bestSplit3: Lap | undefined;
+    bestLap?: Lap;
+    bestSplit1?: Lap;
+    bestSplit2?: Lap;
+    bestSplit3?: Lap;
 
-    bestValidLap: Lap | undefined;
-    bestValidSplit1: Lap | undefined;
-    bestValidSplit2: Lap | undefined;
-    bestValidSplit3: Lap | undefined;
+    bestValidLap?: Lap;
+    bestValidSplit1?: Lap;
+    bestValidSplit2?: Lap;
+    bestValidSplit3?: Lap;
+
+    tsAvgPercentDiff: number = 0;
+    apdSlope: number = 0;
+    sessions: Session[] = [];
+    tsAvgPercentDiffs: number[] = [];
+    avgPercentDiffs: number[] = [];
 
     constructor(data: Partial<DriverHistory> = {}) {
         this.basicDriver = data.basicDriver
@@ -72,6 +81,31 @@ export class DriverHistory {
         return Object.values(driverHistories);
     }
 
+    static fromCarDrivers(carDrivers: CarDriver[], ignoreCarModel: boolean = false): DriverHistory[] {
+        let driverHistories: { [key: string]: DriverHistory } = {}; // {driver_id_car_model: DriverHistory}
+
+        carDrivers.forEach(carDriver => {
+            if (!carDriver.sessionCar)
+                return;
+
+            const driverHistory = new DriverHistory({
+                basicDriver: carDriver.basicDriver,
+                sessionCars: [carDriver.sessionCar],
+            });
+
+            const key = ignoreCarModel
+                ? `${driverHistory.basicDriver?.driverId}`
+                : `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel.modelId}`;
+            if (!driverHistories[key]) {
+                driverHistories[key] = driverHistory;
+            }
+            driverHistories[key].sessionCars.push(driverHistory.sessionCars[0]);
+            driverHistories[key].updateTSAvgPercentDiff(carDriver);
+        });
+
+        return Object.values(driverHistories);
+    }
+
     get potentialBestLap() {
         if (!this.bestSplit1 || !this.bestSplit2 || !this.bestSplit3) {
             return null;
@@ -120,6 +154,23 @@ export class DriverHistory {
         if (!this.bestSplit3 || lap.split3 < this.bestSplit3.split3) {
             this.bestSplit3 = lap;
         }
+    }
+
+    updateTSAvgPercentDiff(carDriver: CarDriver) {
+        if (!carDriver.sessionCar || !carDriver.sessionCar.tsAvgPercentDiff)
+            return;
+
+        if (carDriver.session)
+            this.sessions?.push(carDriver.session);
+
+        if (carDriver.sessionCar.avgPercentDiff)
+            this.avgPercentDiffs.push(carDriver.sessionCar.avgPercentDiff);
+
+        this.tsAvgPercentDiffs.push(carDriver.sessionCar.tsAvgPercentDiff);
+        this.tsAvgPercentDiff = this.tsAvgPercentDiffs.reduce((sum, diff) => sum + diff, 0) / this.tsAvgPercentDiffs.length;
+
+        const linearRegression = ss.linearRegression(this.sessions.map((s, s_idx) => [s_idx, this.tsAvgPercentDiffs[s_idx]]));
+        this.apdSlope = linearRegression.m;
     }
 
     toBasicJSON() {

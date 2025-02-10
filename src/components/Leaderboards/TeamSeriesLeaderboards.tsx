@@ -48,7 +48,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [trackNameState, setTrackName] = useState<string>(params.trackName);
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
-    const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState);
+    const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
 
     useEffect(() => {
         let params = getParams();
@@ -69,9 +69,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         navigate({ search: params.toString() });
     }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState]);
 
-    const uniqueDivisions = Array
-        .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
-        .sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b));
+    const driverHistories = DriverHistory.fromLaps(laps);
 
     return (
         <div>
@@ -94,7 +92,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             </div>
             <div className="leaderboards">
                 {selectedLapAttrsState.map(lapAttr => (
-                    <LapTimeLeaderboard key={lapAttr} laps={laps} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
+                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
                 ))}
             </div>
             <Footer />

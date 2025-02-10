@@ -57,18 +57,18 @@ export const LapAttrSelection: React.FC<LapAttrSelectionProps> = ({
             <label>
                 <input
                     type="checkbox"
-                    checked={selectedLapAttrs.length == LAP_ATTRS.length}
-                    onChange={handleToggleSelectAll}
-                />
-                Select All
-            </label>
-            <label>
-                <input
-                    type="checkbox"
                     checked={SPLIT_ATTRS.every(split => selectedLapAttrs.includes(split))}
                     onChange={handleToggleSelectSplits}
                 />
                 Select All Splits
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={selectedLapAttrs.length == LAP_ATTRS.length}
+                    onChange={handleToggleSelectAll}
+                />
+                Select All
             </label>
         </div>
     )
