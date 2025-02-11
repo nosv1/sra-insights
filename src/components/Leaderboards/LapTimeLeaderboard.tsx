@@ -97,15 +97,26 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
         return <div>{`${timeString}`} <br></br> {`(${((percentAsDecimal - 1) * 100).toFixed(2)}%)`}</div>;
     }
 
-    const bestValidFromLapAttr = (dh: DriverHistory, lapAttr: string) => {
-        if (lapAttr === 'lapTime')
-            return dh.bestValidLap;
-        if (lapAttr === 'split1')
-            return dh.bestValidSplit1;
-        if (lapAttr === 'split2')
-            return dh.bestValidSplit2;
-        if (lapAttr === 'split3')
-            return dh.bestValidSplit3;
+    const bestFromLapAttr = (dh: DriverHistory, lapAttr: string, isValid: boolean = false) => {
+        if (isValid) {
+            if (lapAttr === 'lapTime')
+                return dh.bestValidLap;
+            if (lapAttr === 'split1')
+                return dh.bestValidSplit1;
+            if (lapAttr === 'split2')
+                return dh.bestValidSplit2;
+            if (lapAttr === 'split3')
+                return dh.bestValidSplit3;
+        } else {
+            if (lapAttr === 'lapTime')
+                return dh.bestLap;
+            if (lapAttr === 'split1')
+                return dh.bestSplit1;
+            if (lapAttr === 'split2')
+                return dh.bestSplit2;
+            if (lapAttr === 'split3')
+                return dh.bestSplit3;
+        }
     }
 
     const bestLapData: Data = {
@@ -153,17 +164,17 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     ),
 
                     'Best Valid': new Cell(
-                        <a href={lapLink(dh.bestValidLap)} target="_blank" rel="noreferrer">
-                            {bestValidFromLapAttr(dh, lapAttr)
+                        <a href={lapLink(bestFromLapAttr(dh, lapAttr, true))} target="_blank" rel="noreferrer">
+                            {bestFromLapAttr(dh, lapAttr, true)
                                 ? lapPercentString(
-                                    bestValidFromLapAttr(dh, lapAttr)?.[lapAttr] as number,
-                                    bestValidFromLapAttr(dh, lapAttr)?.[lapAttr] as number / bestValidP1)
+                                    bestFromLapAttr(dh, lapAttr, true)?.[lapAttr] as number,
+                                    bestFromLapAttr(dh, lapAttr, true)?.[lapAttr] as number / bestValidP1)
                                 : ''
                             }
                         </a>,
-                        `Split 1: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(bestValidFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
+                        `Split 1: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
                         `Set ${dh.bestValidLap?.session?.timeAgo}`
                     ),
 
@@ -175,12 +186,17 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     ),
 
                     'Best': new Cell(
-                        <a href={lapLink(dh.bestLap)} target="_blank" rel="noreferrer">
-                            {Lap.timeToString(dh.bestLap?.[lapAttr] as number ?? 0)}
+                        <a href={lapLink(bestFromLapAttr(dh, lapAttr))} target="_blank" rel="noreferrer">
+                            {bestFromLapAttr(dh, lapAttr)
+                                ? lapPercentString(
+                                    bestFromLapAttr(dh, lapAttr)?.[lapAttr] as number,
+                                    bestFromLapAttr(dh, lapAttr)?.[lapAttr] as number / bestP1)
+                                : ''
+                            }
                         </a>,
-                        `Split 1: ${Lap.timeToString(dh.bestLap?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(dh.bestLap?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestLap?.split3 ?? 0)}\n` +
+                        `Split 1: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
                         `Set ${dh.bestLap?.session?.timeAgo}`
                     )
 
