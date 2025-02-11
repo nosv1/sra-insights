@@ -11,16 +11,42 @@ export interface LapsOverTimePlotProps {
 export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistory, lapAttr }) => {
     const validLaps = driverHistory.laps.filter(l => l.isValidForBest);
     const invalidLaps = driverHistory.laps.filter(l => !l.isValidForBest);
+    let sessions: { [sessionKey: string]: Lap[] } = {};
 
     if (!validLaps.length) {
         return <div>No valid laps for {driverHistory.basicDriver?.name}</div>;
     }
 
     // Calculate median lap time for valid laps
-    const validTimes = validLaps.map(l => (l[lapAttr] as number) / 1000.0);
+    const validTimes = validLaps.map(l => {
+        const session = l.session;
+        if (session) {
+            if (!sessions[session?.key_])
+                sessions[session?.key_] = [];
+            sessions[session?.key_].push(l);
+        }
+        return (l[lapAttr] as number) / 1000.0
+    });
     const medianTimes = ss.median(validTimes);
-
-    const plotData = [
+    const minValidTime = Math.min(...validTimes);
+    const maxValidTime = Math.max(...validTimes);
+    const sessionLines = Object.keys(sessions).reverse().map(sessionKey => {
+        const sessionLaps = sessions[sessionKey];
+        const session = sessionLaps[0].session;
+        const firstLapIndex = driverHistory.laps.indexOf(sessionLaps[0]) + 1;
+        return {
+            x: [firstLapIndex, firstLapIndex],
+            y: [minValidTime, maxValidTime],
+            mode: 'lines',
+            type: 'scatter',
+            name: `SRAM${session?.serverNumber} ${session?.sessionType} ${session?.timeAgo}`,
+            line: {
+                color: 'rgba(85, 85, 255, 0.6)',
+                dash: 'dot'
+            },
+        };
+    });
+    let plotData = [
         {
             x: validLaps.map((l, l_idx) => driverHistory.laps.indexOf(l) + 1),
             y: validLaps.map(l => l[lapAttr] as number / 1000.0),
@@ -53,6 +79,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
             },
         }
     ];
+    plotData.push(...sessionLines);
 
     return (
         <div>
@@ -70,6 +97,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
                         title: 'Time (s)',
                         showgrid: true,
                         gridcolor: 'rgba(255,255,255,0.1)',
+                        range: [minValidTime - 0.2, maxValidTime + 0.2],
                     },
                     plot_bgcolor: 'rgba(0,0,0,0)',
                     paper_bgcolor: '#2c2c2c',
@@ -77,13 +105,13 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
                         color: '#e0e0e0',
                     },
                     hovermode: 'closest',
-                    legend: {
-                        orientation: 'h',
-                        y: 1.15,
-                        x: 0.5,
-                        xanchor: 'center',
-                        yanchor: 'top'
-                    },
+                    // legend: {
+                    //     orientation: 'h',
+                    //     y: 1.15,
+                    //     x: 0.5,
+                    //     xanchor: 'center',
+                    //     yanchor: 'top'
+                    // },
                 }}
             />
         </div>

@@ -5,7 +5,7 @@ body {
   background-color: #2c2c2c;
   color: #e0e0e0;
   padding-bottom: 30px;
-  /* Add padding to prevent footer overlap */
+  letter-spacing: 0.8px;
 }
 
 h1 {
@@ -272,12 +272,6 @@ a:visited {
 
 .arcade-leaderboard tr:nth-child(even) {
   background-color: #555;
-}
-
-.arcade-leaderboard td:nth-child(2),
-.arcade-leaderboard th:nth-child(2) {
-  text-align: left;
-  min-width: 100px;
 }
 
 .arcade-leaderboard tbody tr:hover {
