@@ -28,3 +28,9 @@ export const fetchTeamSeriesWeekendsByAttrs = async (trackName: string, season: 
     if (!response.ok) throw new Error("Failed to fetch weekends");
     return response.json();
 }
+
+export const fetchRecentSessions = async (limit: number): Promise<Session[]> => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions/recent?limit=${limit}`);
+    if (!response.ok) throw new Error("Failed to fetch recent sessions");
+    return response.json();
+}

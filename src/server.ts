@@ -198,6 +198,22 @@ app.get('/api/sessions/complete', async (req, res) => {
     res.json(sessionJSON);
 });
 
+app.get('/api/sessions/recent', async (req, res) => {
+    const limit = Number(req.query.limit) || 10;
+    const result = await runQuery(`
+        MATCH (s:Session)
+        RETURN s
+        ORDER BY s.finish_time DESC
+        LIMIT $limit`,
+        `Fetching ${limit} most recent sessions`,
+        { limit: neo4j.int(limit) }
+    );
+
+    const sessions = result.records.map(record => Session.fromRecord(record)).filter(s => s != undefined);
+    const completeSessions = await Promise.all(sessions.map(session => fetchCompleteSessionByKey(session.key_)));
+    res.json(completeSessions);
+});
+
 app.get('/api/sessions/basic-weekend', async (req, res) => {
     const sessionKey = req.query.sessionKey || '';
 

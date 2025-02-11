@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { min } from 'simple-statistics';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
@@ -11,8 +10,7 @@ import { TrackSelection } from '../TrackSelection';
 import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
-import { LapAttrSelection } from './LeaderboardSelection';
-import { LAP_ATTRS } from './LeaderboardSelection';
+import { LapAttrSelection, LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
     const currentDateTime = new Date();
@@ -49,7 +47,16 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
     const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
+    const [medianDivisionTimesData, setMedianDivisionTimesData] = useState<Data>();
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
+
+    const driverHistories = DriverHistory.fromLaps(laps);
+    const { medianDivisionTimes, bestTimes } = DriverHistory.medianDivisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
+
+    const lapPercentString = (time: number, percentAsDecimal: number) => {
+        const timeString = Lap.timeToString(time);
+        return <div>{`${timeString}`} <br></br> {`(${((percentAsDecimal - 1) * 100).toFixed(2)}%)`}</div>;
+    }
 
     useEffect(() => {
         let params = getParams();
@@ -71,15 +78,36 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState]);
 
     useEffect(() => {
+        if (!laps || laps.length === 0)
+            return;
+
         setUniqueDivisions(Array
             .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
             .sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b)));
-    }, [laps]);
+    }, [laps, selectedLapAttrsState]);
 
-    const driverHistories = DriverHistory.fromLaps(laps);
+    useEffect(() => {
+        setMedianDivisionTimesData({
+            title: 'Median Division Times',
+            columns: [''].concat(uniqueDivisionsState.map(d => `D${d}`)),
+            defaultColumns: [''].concat(uniqueDivisionsState.filter(d => d !== 0).map(d => `D${d}`)),
+            rows: selectedLapAttrsState.map(lapAttr => {
+                const cells: Cell[] = [new Cell(LAP_ATTR_TO_TITLE[lapAttr]), ...uniqueDivisionsState.map(d => {
+                    const time = medianDivisionTimes[d][lapAttr];
+                    return new Cell(lapPercentString(time, time / bestTimes[lapAttr]));
+                })];
+                return new Row(cells);
+            })
+        });
+    }, [uniqueDivisionsState, selectedLapAttrsState]);
 
     return (
         <div>
+            <div>
+                {loading && <p>Loading...</p>}
+                {error && <p>Error loading laps: {error}</p>}
+                {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
+            </div>
             <div className="selection-area">
                 <DivSelection
                     selectedDivisions={params.selectedDivisions}
@@ -92,14 +120,14 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 </div>
                 <LapAttrSelection selectedLapAttrs={selectedLapAttrsState} setSelectedLapAttrs={setSelectedLapAttrs} />
             </div>
-            <div>
-                {loading && <p>Loading...</p>}
-                {error && <p>Error loading laps: {error}</p>}
-                {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
-            </div>
+            {medianDivisionTimesData &&
+                <div className="arcade-leaderboard-container">
+                    <ArcadeLeaderboard data={medianDivisionTimesData} includePosition={false} />
+                </div>
+            }
             <div className="leaderboards">
                 {selectedLapAttrsState.map(lapAttr => (
-                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
+                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} medianDivisionTimes={medianDivisionTimes} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
                 ))}
             </div>
             <Footer />
