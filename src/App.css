@@ -214,7 +214,7 @@ a:visited {
   align-items: center;
   flex-wrap: wrap;
   margin: 20px auto;
-  padding: 10px;
+  padding: 10px 20px;
   background-color: #444;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -284,6 +284,28 @@ a:visited {
   justify-content: center;
   align-items: center;
   margin: 20px 0;
+}
+
+.plot-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.plot-button {
+  background-color: #ffcc00;
+  color: #2c2c2c;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.plot-button:hover {
+  background-color: #e6b800;
 }
 
 .session-count-control {
@@ -475,7 +497,7 @@ footer {
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 10px 0;
+  padding: 10px 20px;
   background-color: #444;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -509,4 +531,5 @@ footer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   white-space: nowrap;
+  text-align: left;
 }
