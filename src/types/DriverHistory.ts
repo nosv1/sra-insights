@@ -174,6 +174,51 @@ export class DriverHistory {
         this.apdSlope = linearRegression.m;
     }
 
+    static medianDivisionTimesFromDriverHistories(
+        driverHistories: DriverHistory[],
+        uniqueDivisions: number[]
+    ): {
+        medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } },
+        bestTimes: { [lapAttr: string]: number }
+    } {
+        const medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } } = {};
+        const bestTimes: { [lapAttr: string]: number } = {};
+        uniqueDivisions.forEach(division => {
+            const divisionDrivers = driverHistories.filter(dh => dh.basicDriver?.raceDivision === division).filter(dh => dh.bestValidLap);
+            medianDivisionTimes[division] = {};
+            LAP_ATTRS.forEach(lapAttr => {
+                if (!bestTimes[lapAttr])
+                    bestTimes[lapAttr] = Number.MAX_VALUE;
+
+                const bestDivisionTimes: { [key: string]: number } = {};
+                divisionDrivers.forEach(dh => {
+                    const driverId = dh.basicDriver?.driverId ?? '';
+                    if (!bestDivisionTimes[driverId]) {
+                        bestDivisionTimes[driverId] = Number.MAX_VALUE;
+                    }
+                    let time = 0;
+                    if (lapAttr === 'lapTime') {
+                        time = dh.bestValidLap?.lapTime ?? 0;
+                    } else {
+                        const bestValidSplitAttr = `bestValid${lapAttr.charAt(0).toUpperCase() + lapAttr.slice(1)}` as keyof DriverHistory;
+                        const lap = dh[bestValidSplitAttr] as Lap;
+                        time = (lap[lapAttr as keyof Lap] ?? 0) as number;
+                    }
+                    bestDivisionTimes[driverId] = Math.min(bestDivisionTimes[driverId], time);
+                });
+
+                const bestTimesArray = Object.values(bestDivisionTimes).filter(time => time > 0);
+                bestTimesArray.sort((a, b) => a - b);
+                bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
+
+                const median = ss.median(bestTimesArray);
+                medianDivisionTimes[division][lapAttr] = median;
+            });
+        });
+
+        return { medianDivisionTimes, bestTimes };
+    }
+
     toBasicJSON() {
         return {
             basicDriver: this.basicDriver?.toBasicJSON(),

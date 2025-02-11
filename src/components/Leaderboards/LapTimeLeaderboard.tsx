@@ -10,11 +10,12 @@ import { LapsOverTimePlot } from './LapsOverTimePlot';
 
 export interface LapTimeLeaderboardProps {
     driverHistories: DriverHistory[];
-    selectedDivisions: number[]
+    medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } };
+    selectedDivisions: number[];
     lapAttr: keyof Lap;
 };
 
-export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHistories, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
+export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHistories, medianDivisionTimes, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
 
     let potentialValidP1 = Number.MAX_SAFE_INTEGER;
@@ -128,18 +129,38 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                 'Potential Valid',
                 'Best Valid',
                 'Potential',
-                'Best'
+                'Best',
+                'Closest Div Median',
             ]
             : [ // Split Leaderboard
                 'Div | Driver',
                 'Car',
                 'Best Valid',
                 'Best',
+                'Closest Div Median',
             ],
         defaultColumns: lapAttr === 'lapTime' ? ['Div | Driver', 'Potential Valid', 'Best Valid'] : ['Div | Driver', 'Best Valid'],
         rows: driverHistories
             .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0) && dh.bestValidLap)
             .map(dh => {
+                const best = bestFromLapAttr(dh, lapAttr);
+                const bestValid = bestFromLapAttr(dh, lapAttr, true);
+                let closestDiv = 0;
+                if (bestValid) {
+                    const bestValidLapTime = bestValid[lapAttr] as number;
+                    let smallestDiff = Number.MAX_SAFE_INTEGER;
+
+                    for (const divStr in medianDivisionTimes) {
+                        const div = parseInt(divStr, 10);
+                        const medianTime = medianDivisionTimes[div][lapAttr];
+                        const diff = Math.abs(bestValidLapTime - medianTime);
+                        if (diff < smallestDiff) {
+                            smallestDiff = diff;
+                            closestDiv = div;
+                        }
+                    }
+                }
+
                 const cells: { [key: string]: Cell } = {
                     'Div | Driver': new Cell(
                         <div className="driver-hover-dropdown" onMouseEnter={() => setHoveredDriver(dh.basicDriver)} onMouseLeave={() => setHoveredDriver(undefined)}>
@@ -160,22 +181,24 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                         dh.potentialBestValidLap ? lapPercentString(dh.potentialBestValidLap, dh.potentialBestValidLap / potentialValidP1) : '',
                         `Split 1: ${Lap.timeToString(dh.bestValidSplit1?.split1 ?? 0)} (set ${dh.bestValidSplit1?.session?.timeAgo})\n` +
                         `Split 2: ${Lap.timeToString(dh.bestValidSplit2?.split2 ?? 0)} (set ${dh.bestValidSplit2?.session?.timeAgo})\n` +
-                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)} (set ${dh.bestValidSplit3?.session?.timeAgo})\n`
+                        `Split 3: ${Lap.timeToString(dh.bestValidSplit3?.split3 ?? 0)} (set ${dh.bestValidSplit3?.session?.timeAgo})\n`,
+                        (dh.potentialBestValidLap ?? 0) / 1000
                     ),
 
                     'Best Valid': new Cell(
-                        <a href={lapLink(bestFromLapAttr(dh, lapAttr, true))} target="_blank" rel="noreferrer">
-                            {bestFromLapAttr(dh, lapAttr, true)
+                        <a href={lapLink(bestValid)} target="_blank" rel="noreferrer">
+                            {bestValid
                                 ? lapPercentString(
-                                    bestFromLapAttr(dh, lapAttr, true)?.[lapAttr] as number,
-                                    bestFromLapAttr(dh, lapAttr, true)?.[lapAttr] as number / bestValidP1)
+                                    bestValid?.[lapAttr] as number,
+                                    bestValid?.[lapAttr] as number / bestValidP1)
                                 : ''
                             }
                         </a>,
-                        `Split 1: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
-                        `Set ${dh.bestValidLap?.session?.timeAgo}`
+                        `Split 1: ${Lap.timeToString(bestValid?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(bestValid?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(bestValid?.split3 ?? 0)}\n` +
+                        `Set ${dh.bestValidLap?.session?.timeAgo}`,
+                        (bestValid?.[lapAttr] as number) / 1000
                     ),
 
                     'Potential': new Cell(
@@ -186,20 +209,23 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     ),
 
                     'Best': new Cell(
-                        <a href={lapLink(bestFromLapAttr(dh, lapAttr))} target="_blank" rel="noreferrer">
-                            {bestFromLapAttr(dh, lapAttr)
+                        <a href={lapLink(best)} target="_blank" rel="noreferrer">
+                            {best
                                 ? lapPercentString(
-                                    bestFromLapAttr(dh, lapAttr)?.[lapAttr] as number,
-                                    bestFromLapAttr(dh, lapAttr)?.[lapAttr] as number / bestP1)
+                                    best?.[lapAttr] as number,
+                                    best?.[lapAttr] as number / bestP1)
                                 : ''
                             }
                         </a>,
-                        `Split 1: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split1 ?? 0)}\n` +
-                        `Split 2: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split2 ?? 0)}\n` +
-                        `Split 3: ${Lap.timeToString(bestFromLapAttr(dh, lapAttr)?.split3 ?? 0)}\n` +
+                        `Split 1: ${Lap.timeToString(best?.split1 ?? 0)}\n` +
+                        `Split 2: ${Lap.timeToString(best?.split2 ?? 0)}\n` +
+                        `Split 3: ${Lap.timeToString(best?.split3 ?? 0)}\n` +
                         `Set ${dh.bestLap?.session?.timeAgo}`
-                    )
+                    ),
 
+                    'Closest Div Median': new Cell(
+                        `Div ${closestDiv}`, '', closestDiv
+                    )
                 };
 
                 if (lapAttr !== 'lapTime') {

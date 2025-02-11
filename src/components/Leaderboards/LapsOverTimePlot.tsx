@@ -39,7 +39,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
             y: [minValidTime, maxValidTime],
             mode: 'lines',
             type: 'scatter',
-            name: `SRAM${session?.serverNumber} ${session?.sessionType} ${session?.timeAgo}`,
+            name: `SRAM${session?.serverNumber} ${session?.sessionType} | ${session?.timeAgo}`,
             line: {
                 color: 'rgba(85, 85, 255, 0.6)',
                 dash: 'dot'

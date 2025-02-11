@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Plot from 'react-plotly.js'; // Import Plotly
 
 export class Cell {
-    value: React.ReactNode;
+    displayValue: React.ReactNode;
     hover: string;
+    sortValue: string | number | null;
 
     constructor(
-        value: React.ReactNode,
-        hover: string | null = null
+        displayValue: React.ReactNode,
+        hover: string | null = null,
+        sortValue: string | number | null = null,
     ) {
-        this.value = value;
-        this.hover = hover || (typeof value === 'string' ? value : '');
+        this.displayValue = displayValue;
+        this.hover = hover || (typeof displayValue === 'string' ? displayValue : '');
+        this.sortValue = sortValue || (typeof displayValue === 'string' ? displayValue : '');
     }
 }
 
@@ -76,13 +80,24 @@ export const ColumnSelection: React.FC<ColumnSelectionProps> = ({
 
 interface ArcadeLeaderboardProps {
     data: Data;
+    includePosition?: boolean
 }
 
-export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data }) => {
+export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, includePosition = true }) => {
     const [selectedColumns, setSelectedColumns] = useState<string[]>(data.defaultColumns);
+    const [numericColumns, setNumericColumns] = useState<string[]>([]);
     const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [showPlot, setShowPlot] = useState<{ [key: string]: boolean }>({});
+
+    useEffect(() => {
+        setSelectedColumns(data.defaultColumns);
+
+        setNumericColumns(data.columns.filter((_, index) =>
+            data.rows.some(row => typeof row.row[index].sortValue === 'number')
+        ));
+    }, [data]);
 
     const handleSort = (column: string) => {
         if (sortColumn === column) {
@@ -92,24 +107,29 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data }) =>
             setSortDirection('asc');
         }
     };
+
+    const handlePlotButtonClick = (column: string) => {
+        setShowPlot(prev => ({ ...prev, [column]: !prev[column] }));
+    };
+
+    const getStringValue = (value: React.ReactNode): string => {
+        if (typeof value === 'string' || typeof value === 'number') return value.toString();
+        if (React.isValidElement(value)) {
+            const element = value as React.ReactElement;
+            const children = element.props.children;
+            if (typeof children === 'string' || typeof children === 'number') return children.toString();
+            if (Array.isArray(children)) return children.map(getStringValue).join('');
+            if (React.isValidElement(children)) return getStringValue(children);
+        }
+        return '';
+    };
+
     const sortedRows = [...data.rows].sort((a, b) => {
         if (!sortColumn) return 0;
         const columnIndex = data.columns.indexOf(sortColumn);
 
-        const getStringValue = (value: React.ReactNode): string => {
-            if (typeof value === 'string' || typeof value === 'number') return value.toString();
-            if (React.isValidElement(value)) {
-                const element = value as React.ReactElement;
-                const children = element.props.children;
-                if (typeof children === 'string' || typeof children === 'number') return children.toString();
-                if (Array.isArray(children)) return children.map(getStringValue).join('');
-                if (React.isValidElement(children)) return getStringValue(children);
-            }
-            return '';
-        };
-
-        const stringA = getStringValue(a.row[columnIndex].value);
-        const stringB = getStringValue(b.row[columnIndex].value);
+        const stringA = getStringValue(a.row[columnIndex].displayValue);
+        const stringB = getStringValue(b.row[columnIndex].displayValue);
 
         const floatA = parseFloat(stringA);
         const floatB = parseFloat(stringB);
@@ -125,13 +145,44 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data }) =>
     return (
         <div className="arcade-leaderboard">
             <h2>{data.title}</h2>
+            <div className="plot-buttons-container">
+                {numericColumns.map((column, index) => (
+                    <button className="plot-button" key={index} onClick={() => handlePlotButtonClick(column)}>Show {column} Plot</button>
+                ))}
+            </div>
+            {numericColumns.map((column, index) => (
+                <div key={index}>
+                    {showPlot[column] && (
+                        <div className="plot">
+                            <Plot
+                                data={[{
+                                    x: sortedRows.map(row => getStringValue(row.row[0].displayValue)),
+                                    y: sortedRows.map(row => row.row[data.columns.indexOf(column)].sortValue),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: column,
+                                }]}
+                                layout={{
+                                    title: `${data.title} - ${column} Plot`,
+                                    xaxis: { title: { text: data.columns[0] } },
+                                    yaxis: { title: column },
+                                    height: 400,
+                                    plot_bgcolor: 'rgba(0,0,0,0)',
+                                    paper_bgcolor: '#2c2c2c',
+                                    font: { color: '#e0e0e0' },
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+            ))}
             <div className="column-selection-container">
                 <ColumnSelection columns={data.columns} selectedColumns={selectedColumns} setSelectedColumns={setSelectedColumns} />
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Pos</th>
+                        {includePosition && <th>Pos</th>}
                         {selectedColumns.map((column, index) => (
                             <th key={index} onClick={() => handleSort(column)}>
                                 {column} {sortColumn === column ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
@@ -146,9 +197,9 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data }) =>
                                 className={hoveredRowIndex === rowIndex ? 'hovered-row' : ''}
                                 onClick={() => setHoveredRowIndex(hoveredRowIndex === rowIndex ? null : rowIndex)}
                             >
-                                <td>{rowIndex + 1}</td>
+                                {includePosition && <td>{rowIndex + 1}</td>}
                                 {row.row.filter((_, cellIndex) => selectedColumns.includes(data.columns[cellIndex])).map((cell, cellIndex) => (
-                                    <td key={cellIndex} title={cell.hover}>{cell.value}</td>
+                                    <td key={cellIndex} title={cell.hover}>{cell.displayValue}</td>
                                 ))}
                             </tr>
                             {hoveredRowIndex === rowIndex && row.extra && (
