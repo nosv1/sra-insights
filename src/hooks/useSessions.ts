@@ -1,7 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchTeamSeriesWeekendsByAttrs } from "../services/SessionService";
+import { fetchRecentSessions, fetchTeamSeriesWeekendsByAttrs } from "../services/SessionService";
+import { Session } from "../types/Session";
 import { Weekend } from "../types/Weekend";
 
+export const useRecentSessions = (limit: number) => {
+    const [recentSessions, setRecentSessions] = useState<Session[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const prevDeps = useRef<number | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true); // Set loading to true at the beginning
+            try {
+                const sessions = await fetchRecentSessions(limit);
+                setRecentSessions(sessions);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const depsChanged = prevDeps.current === null || prevDeps.current !== limit;
+        if (depsChanged) {
+            fetchData();
+            prevDeps.current = limit;
+        }
+    }, [limit]);
+
+    return { recentSessions, loading, error };
+}
 
 export const useTeamSeriesWeekends = (trackName: string, season: number) => {
     const [teamSeriesWeekends, setTeamSeriesWeekends] = useState<Weekend[]>([]);

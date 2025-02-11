@@ -174,6 +174,22 @@ app.get('/api/laps', async (req, res) => {
 
 
 //////////      Session      //////////
+app.get('/api/sessions/recent', async (req, res) => {
+    const limit = Number(req.query.limit) || 10;
+    const result = await runQuery(`
+        MATCH (s:Session)
+        RETURN s
+        ORDER BY s.finish_time DESC
+        LIMIT $limit`,
+        `Fetching ${limit} most recent sessions`,
+        { limit: neo4j.int(limit) }
+    );
+
+    const sessionsJSON = result.records.map(record => Session.fromRecord(record)?.toJSON());
+    res.json(sessionsJSON);
+});
+
+
 app.get('/api/sessions/complete', async (req, res) => {
     const sessionKey = req.query.sessionKey || '';
 

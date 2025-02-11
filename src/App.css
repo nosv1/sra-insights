@@ -470,3 +470,28 @@ footer {
   background-color: #555;
   border-radius: 3px;
 }
+
+.recent-sessions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 0;
+  background-color: #444;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.session-item {
+  color: #ffcc00;
+  font-size: 16px;
+  text-align: center;
+  padding: 5px 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  background-color: #333;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.session-item:hover {
+  background-color: #555;
+  transform: scale(1.05);
+}
