@@ -1,5 +1,6 @@
 import { Record } from "neo4j-driver";
 import * as ss from 'simple-statistics';
+import { LAP_ATTRS } from "../components/Leaderboards/LeaderboardSelection";
 import { BasicDriver } from './BasicDriver';
 import { CarDriver } from './CarDriver';
 import { Lap } from './Lap';
@@ -26,6 +27,24 @@ export class DriverHistory {
     sessions: Session[] = [];
     tsAvgPercentDiffs: number[] = [];
     avgPercentDiffs: number[] = [];
+
+    get potentialBestLap() {
+        if (!this.bestSplit1 || !this.bestSplit2 || !this.bestSplit3) {
+            return null;
+        }
+        return this.bestSplit1?.split1 + this.bestSplit2?.split2 + this.bestSplit3?.split3;
+    }
+
+    get potentialBestValidLap() {
+        if (!this.bestValidSplit1 || !this.bestValidSplit2 || !this.bestValidSplit3) {
+            return null;
+        }
+        return this.bestValidSplit1?.split1 + this.bestValidSplit2?.split2 + this.bestValidSplit3?.split3;
+    }
+
+    get validLaps() {
+        return this.laps.filter(lap => lap.isValidForBest);
+    }
 
     constructor(data: Partial<DriverHistory> = {}) {
         this.basicDriver = data.basicDriver
@@ -104,24 +123,6 @@ export class DriverHistory {
         });
 
         return Object.values(driverHistories);
-    }
-
-    get potentialBestLap() {
-        if (!this.bestSplit1 || !this.bestSplit2 || !this.bestSplit3) {
-            return null;
-        }
-        return this.bestSplit1?.split1 + this.bestSplit2?.split2 + this.bestSplit3?.split3;
-    }
-
-    get potentialBestValidLap() {
-        if (!this.bestValidSplit1 || !this.bestValidSplit2 || !this.bestValidSplit3) {
-            return null;
-        }
-        return this.bestValidSplit1?.split1 + this.bestValidSplit2?.split2 + this.bestValidSplit3?.split3;
-    }
-
-    get validLaps() {
-        return this.laps.filter(lap => lap.isValidForBest);
     }
 
     updateLaps(lap: Lap) {

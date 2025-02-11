@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import { Node, RecordShape } from "neo4j-driver";
 import { CarDriver } from "./CarDriver";
 import { TeamSeriesSession } from "./TeamSeriesSession";
@@ -26,7 +27,7 @@ export class Session {
     }
 
     get timeAgo(): string {
-        const now = new Date();
+        const now = moment.tz('America/New_York').utc().toDate();
         const diff = now.getTime() - this.finishTime.getTime();
         const diffSeconds = Math.floor(diff / 1000);
         const diffMinutes = Math.floor(diffSeconds / 60);
@@ -59,9 +60,15 @@ export class Session {
             key_: node.properties['key_'],
             trackName: node.properties['track_name'],
             sessionType: node.properties['session_type'],
-            finishTime: new Date(node.properties['finish_time']),
+            finishTime: moment.tz(
+                node.properties['finish_time']
+                    .toString()
+                    .slice(0, -1),
+                'YYYY-MM-DDTHH:mm:ss',
+                'America/New_York'
+            ).utc().toDate(),
             sessionFile: node.properties['session_file'],
-            serverNumber: node.properties['server_number'],
+            serverNumber: parseInt(node.properties['server_number']),
             serverName: node.properties['server_name'],
         });
     }
