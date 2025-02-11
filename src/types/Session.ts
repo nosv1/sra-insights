@@ -23,7 +23,7 @@ export class Session {
     }
 
     get sessionTypeSraWord(): string {
-        return (this.sessionType === 'R' ? 'race' : this.sessionType === 'Q' ? 'qualifying' : 'practice')
+        return (this.sessionType === 'R' ? 'race' : this.sessionType === 'Q' ? 'qual' : 'practice')
     }
 
     get timeAgo(): string {
