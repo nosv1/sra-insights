@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
                             <div className="tooltip">
                                 {session.carDrivers?.map(carDriver => (
                                     <div key={carDriver.driverId}>
-                                        D{carDriver.basicDriver?.raceDivision} | {carDriver.basicDriver?.name}: {carDriver.sessionCar?.bestValidLap?.lapTime && Lap.timeToString(carDriver.sessionCar?.bestValidLap?.lapTime)} ({carDriver.sessionCar?.laps.length} laps)
+                                        D{carDriver.basicDriver?.raceDivision} | {carDriver.basicDriver?.name}: {carDriver.sessionCar?.bestValidLapMilli && Lap.timeToString(carDriver.sessionCar?.bestValidLapMilli)} ({carDriver.sessionCar?.laps.length} laps)
                                     </div>
                                 ))}
                             </div>

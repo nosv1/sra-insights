@@ -16,7 +16,7 @@ export class SessionCar {
     bestValidSplit1Milli: number; // these come straight from the results json
     bestValidSplit2Milli: number;
     bestValidSplit3Milli: number;
-    bestValidLapMili: number;
+    bestValidLapMilli: number;
 
     bestValidSplit1?: Lap = undefined; // these are from processing laps (if present)
     bestValidSplit2?: Lap = undefined;
@@ -60,7 +60,7 @@ export class SessionCar {
         this.bestValidSplit1Milli = data.bestValidSplit1Milli ?? 0;
         this.bestValidSplit2Milli = data.bestValidSplit2Milli ?? 0;
         this.bestValidSplit3Milli = data.bestValidSplit3Milli ?? 0;
-        this.bestValidLapMili = data.bestValidLapMili ?? 0;
+        this.bestValidLapMilli = data.bestValidLapMilli ?? 0;
 
         // not present in every car node
         this.avgPercentDiff = data.avgPercentDiff ?? null;
@@ -81,7 +81,7 @@ export class SessionCar {
             bestValidSplit1Milli: node.properties['best_split1'],
             bestValidSplit2Milli: node.properties['best_split2'],
             bestValidSplit3Milli: node.properties['best_split3'],
-            bestValidLapMili: node.properties['best_lap'],
+            bestValidLapMilli: node.properties['best_lap'],
 
             // not present in every car node
             avgPercentDiff: node.properties?.['avg_percent_diff'] ?? null,
@@ -190,7 +190,7 @@ export class SessionCar {
             bestValidSplit1Milli: this.bestValidSplit1Milli,
             bestValidSplit2Milli: this.bestValidSplit2Milli,
             bestValidSplit3Milli: this.bestValidSplit3Milli,
-            bestValidLapMili: this.bestValidLapMili,
+            bestValidLapMilli: this.bestValidLapMilli,
             bestValidSplit1: this.bestValidSplit1?.toBasicJSON(),
             bestValidSplit2: this.bestValidSplit2?.toBasicJSON(),
             bestValidSplit3: this.bestValidSplit3?.toBasicJSON(),
