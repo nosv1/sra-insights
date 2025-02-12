@@ -11,6 +11,10 @@ export class DriverHistory {
     basicDriver?: BasicDriver;
     sessionCars: SessionCar[];
     laps: Lap[];
+    lapsSortedByValidLap: number[] = [];  // index of lap in laps
+    lapsSortedByValidSplit1: number[] = [];
+    lapsSortedByValidSplit2: number[] = [];
+    lapsSortedByValidSplit3: number[] = [];
 
     bestLap?: Lap;
     bestSplit1?: Lap;
@@ -21,6 +25,11 @@ export class DriverHistory {
     bestValidSplit1?: Lap;
     bestValidSplit2?: Lap;
     bestValidSplit3?: Lap;
+
+    rollingValidMedianLap: number[] = []; // index of lap in lapsSortedByValidLap
+    rollingValidMedianSplit1: number[] = [];
+    rollingValidMedianSplit2: number[] = [];
+    rollingValidMedianSplit3: number[] = [];
 
     tsAvgPercentDiff: number = 0;
     apdSlope: number = 0;
@@ -126,9 +135,11 @@ export class DriverHistory {
     }
 
     updateLaps(lap: Lap) {
+        lap.overallLapNumber = this.laps.length + 1;
         this.laps.push(lap);
 
         if (lap.isValidForBest) {
+            // Update best valid laps
             if (!this.bestValidLap || lap.lapTime < this.bestValidLap.lapTime) {
                 this.bestValidLap = lap;
             }
@@ -141,8 +152,26 @@ export class DriverHistory {
             if (!this.bestValidSplit3 || lap.split3 < this.bestValidSplit3.split3) {
                 this.bestValidSplit3 = lap;
             }
+
+            // update sorted arrays
+            const insertSorted = (arr: number[], lap: Lap, lapAttr: keyof Lap) => {
+                let i = arr.length - 1;
+                while (i >= 0) {
+                    const arrLap = this.laps[arr[i]];
+                    if (arrLap[lapAttr] && lap[lapAttr] && arrLap[lapAttr] < lap[lapAttr])
+                        break;
+                    i--;
+                }
+                arr.splice(i + 1, 0, this.laps.length - 1);
+            };
+
+            insertSorted(this.lapsSortedByValidLap, lap, 'lapTime');
+            insertSorted(this.lapsSortedByValidSplit1, lap, 'split1');
+            insertSorted(this.lapsSortedByValidSplit2, lap, 'split2');
+            insertSorted(this.lapsSortedByValidSplit3, lap, 'split2');
         }
 
+        // update best laps (possibly invalid)
         if (!this.bestLap || lap.lapTime < this.bestLap.lapTime) {
             this.bestLap = lap;
         }
@@ -155,6 +184,16 @@ export class DriverHistory {
         if (!this.bestSplit3 || lap.split3 < this.bestSplit3.split3) {
             this.bestSplit3 = lap;
         }
+
+        // update rolling median
+        if (this.lapsSortedByValidLap.length > 0) {
+            const medianIndex = Math.floor(this.lapsSortedByValidLap.length / 2);
+            this.rollingValidMedianLap.push(this.lapsSortedByValidLap[medianIndex]);
+            this.rollingValidMedianSplit1.push(this.lapsSortedByValidSplit1[medianIndex]);
+            this.rollingValidMedianSplit2.push(this.lapsSortedByValidSplit2[medianIndex]);
+            this.rollingValidMedianSplit3.push(this.lapsSortedByValidSplit3[medianIndex]);
+        }
+
     }
 
     updateTSAvgPercentDiff(carDriver: CarDriver) {
@@ -211,6 +250,10 @@ export class DriverHistory {
                 bestTimesArray.sort((a, b) => a - b);
                 bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
 
+                if (bestTimesArray.length === 0) {
+                    medianDivisionTimes[division][lapAttr] = 0;
+                    return;
+                }
                 const median = ss.median(bestTimesArray);
                 medianDivisionTimes[division][lapAttr] = median;
             });
