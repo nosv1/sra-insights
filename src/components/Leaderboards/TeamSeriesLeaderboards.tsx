@@ -11,6 +11,7 @@ import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
 import { LapAttrSelection, LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
+import { ServerSelection } from '../ServerSelection';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
     const currentDateTime = new Date();
@@ -30,12 +31,14 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const trackName = params.get('trackName');
         const selectedDivisions = params.get('selectedDivisions');
         const selectedLapAttrs = params.get('selectedLapAttrs');
+        const selectedServers = params.get('selectedServers');
         return {
             afterDate: afterDate || localTwoWeeksAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
             trackName: trackName || TeamSeriesSchedule.getCurrentRoundTrack(),
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
-            selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : []
+            selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
+            selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3']
         };
     };
 
@@ -45,12 +48,15 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [beforeDateState, setBeforeDate] = useState<string>(params.beforeDate);
     const [trackNameState, setTrackName] = useState<string>(params.trackName);
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
-    const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(['lapTime']);
     const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
+    const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(params.selectedLapAttrs);
+    const [selectedServersState, setSelectedServers] = useState<string[]>(params.selectedServers);
+    const [uniqueServersState, setUniqueServers] = useState<string[]>(['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4', 'SRAM5']);
     const [medianDivisionTimesData, setMedianDivisionTimesData] = useState<Data>();
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
+    const [filteredLapsState, setFilteredLaps] = useState<Lap[]>([]);
 
-    const driverHistories = DriverHistory.fromLaps(laps);
+    const driverHistories = DriverHistory.fromLaps(filteredLapsState);
     const { medianDivisionTimes, bestTimes } = DriverHistory.medianDivisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
 
     const lapPercentString = (time: number, percentAsDecimal: number) => {
@@ -65,6 +71,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         setTrackName(params.trackName);
         setSelectedDivisions(params.selectedDivisions);
         setSelectedLapAttrs(params.selectedLapAttrs);
+        setSelectedServers(params.selectedServers);
     }, [location.search]);
 
     useEffect(() => {
@@ -74,12 +81,17 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         params.set('trackName', trackNameState);
         params.set('selectedDivisions', selectedDivisionsState.join(','));
         params.set('selectedLapAttrs', selectedLapAttrsState.join(','));
+        params.set('selectedServers', selectedServersState.join(','));
         navigate({ search: params.toString() });
-    }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState]);
+    }, [afterDateState, beforeDateState, trackNameState, selectedDivisionsState, selectedLapAttrsState, selectedServersState]);
 
     useEffect(() => {
         if (!laps || laps.length === 0)
             return;
+
+        const serverToNumber = (server: string) => parseInt(server.replace('SRAM', ''));
+        const serverNumbers = (servers: string[]) => servers.map(serverToNumber);
+        setFilteredLaps(laps.filter(l => serverNumbers(selectedServersState).includes(l.serverNumber)));
 
         setUniqueDivisions(Array
             .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
@@ -119,6 +131,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                     <TrackSelection trackName={params.trackName} onTrackSelect={setTrackName} />
                 </div>
                 <LapAttrSelection selectedLapAttrs={selectedLapAttrsState} setSelectedLapAttrs={setSelectedLapAttrs} />
+                <ServerSelection selectedServers={selectedServersState} setSelectedServers={setSelectedServers} uniqueServers={uniqueServersState} />
             </div>
             {medianDivisionTimesData &&
                 <div className="arcade-leaderboard-container">
