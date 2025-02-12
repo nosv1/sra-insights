@@ -63,7 +63,7 @@ export class Lap {
             split3: node.properties['split3'],
             isValidForBest: node.properties['is_valid_for_best'],
             runningSessionLapCount: node.properties['running_session_lap_count'],
-            serverNumber: node.properties['server_number'],
+            serverNumber: parseInt(node.properties['server_number']),
             sessionFile: node.properties['session_file']
         });
     }

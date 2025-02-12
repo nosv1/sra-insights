@@ -250,6 +250,10 @@ export class DriverHistory {
                 bestTimesArray.sort((a, b) => a - b);
                 bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
 
+                if (bestTimesArray.length === 0) {
+                    medianDivisionTimes[division][lapAttr] = 0;
+                    return;
+                }
                 const median = ss.median(bestTimesArray);
                 medianDivisionTimes[division][lapAttr] = median;
             });
