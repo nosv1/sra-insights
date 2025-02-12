@@ -136,7 +136,7 @@ export const APDPlot: React.FC = () => {
 
     let insertIdxs: { [key: number]: number } = {};
 
-    const plotData = filteredCarDrivers.map((driverHistory, gd_idx) => {
+    let plotData = filteredCarDrivers.map((driverHistory, gd_idx) => {
         const driver = driverHistory.basicDriver;
         const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
         const slopeColor = divisionColor.brighten(
@@ -162,6 +162,7 @@ export const APDPlot: React.FC = () => {
                 color: barColor.toRgba(),
                 line: {
                     color: barColor.toRgba(),
+                    width: 0,
                 },
             },
             text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
@@ -175,6 +176,34 @@ export const APDPlot: React.FC = () => {
                     .join('<br>'),
         };
     });
+
+    // insert bars for division cutoffs
+    if (sortBy == 'apd' && !sortByDivisionEnabledState) {
+        const driversPerDivision = (plotData.length + uniqueDivisions.length - 1) / uniqueDivisions.length - 1;
+        let i = plotData.length - 1;
+        while (i > 0) {
+            const division = Math.floor(i / driversPerDivision) + 1;
+            if (i % Math.floor(driversPerDivision * division) === 0) {
+                const pd = plotData[i];
+                const barColor = SRADivColor.fromDivision(division);
+                plotData.splice(i, 0, {
+                    x: [`Division ${division} Cutoff`],
+                    y: [-pd.y[0]],
+                    type: 'bar',
+                    name: `Division ${division}`,
+                    marker: {
+                        color: barColor.toRgba(),
+                        line: {
+                            color: barColor.brighten().toRgba(),
+                            width: 1.5,
+                        }
+                    },
+                    text: `Division ${division} Cutoff`,
+                });
+            }
+            i--;
+        }
+    }
 
     return (
         <div>
@@ -204,7 +233,7 @@ export const APDPlot: React.FC = () => {
                     layout={{
                         height: 800,
                         width: window.innerWidth * 0.98,
-                        title: 'Average Percent Differences',
+                        title: `Average Percent Differences - ${plotData.length} Drivers`,
                         xaxis: {
                             title: 'Driver',
                             showgrid: true,

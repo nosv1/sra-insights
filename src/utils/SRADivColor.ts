@@ -26,6 +26,9 @@ export class SRADivColor {
     }
 
     static fromDivision(division: number): SRADivColor {
+        if (this.DIV_COLORS[division] === undefined)
+            return new SRADivColor(0, 0, 0);
+
         const [r, g, b] = SRADivColor.DIV_COLORS[division];
         return new SRADivColor(r, g, b);
     }
