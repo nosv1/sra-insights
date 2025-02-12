@@ -27,9 +27,16 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
         }
         return (l[lapAttr] as number) / 1000.0
     });
-    const medianTimes = ss.median(validTimes);
     const minValidTime = Math.min(...validTimes);
     const maxValidTime = Math.max(...validTimes);
+    // rollingValidMedianLap
+    const rollingValidMedian = driverHistory[
+        `rollingValidMedian${lapAttr.charAt(0).toUpperCase()
+        + (lapAttr === 'lapTime'
+            ? 'ap'
+            : lapAttr.slice(1))
+        }` as keyof DriverHistory
+    ] as number[];
     const sessionLines = Object.keys(sessions).reverse().map(sessionKey => {
         const sessionLaps = sessions[sessionKey];
         const session = sessionLaps[0].session;
@@ -48,7 +55,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
     });
     let plotData = [
         {
-            x: validLaps.map((l, l_idx) => driverHistory.laps.indexOf(l) + 1),
+            x: validLaps.map(l => l.overallLapNumber),
             y: validLaps.map(l => l[lapAttr] as number / 1000.0),
             mode: 'markers',
             type: 'scatter',
@@ -58,7 +65,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
             },
         },
         {
-            x: invalidLaps.map((l, l_idx) => driverHistory.laps.indexOf(l) + 1),
+            x: invalidLaps.map(l => l.overallLapNumber),
             y: invalidLaps.map(l => l[lapAttr] as number / 1000.0),
             mode: 'markers',
             type: 'scatter',
@@ -68,11 +75,11 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
             },
         },
         {
-            x: [1, driverHistory.laps.length],
-            y: [medianTimes, medianTimes],
+            x: rollingValidMedian.map((_, idx) => idx + 1),
+            y: rollingValidMedian.map(l_idx => (driverHistory.laps[l_idx][lapAttr] as number) / 1000.0),
             mode: 'lines',
             type: 'scatter',
-            name: `Median Valid Time: ${medianTimes.toFixed(3)}s`,
+            name: `Rolling Median Time`,
             line: {
                 color: 'rgba(0,255,0,0.5)',
                 dash: 'dash'

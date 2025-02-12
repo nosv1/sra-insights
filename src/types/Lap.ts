@@ -32,6 +32,10 @@ export class Lap {
         return [this.split1, this.split2, this.split3];
     }
 
+    set overallLapNumber(value: number) {
+        this.overallLapNumber = value;
+    }
+
     constructor(data: Partial<Lap> = {}) {
         this.key_ = data.key_ ?? '';
         this.carID = data.carID ?? '';
@@ -124,6 +128,7 @@ export class Lap {
             running_session_lap_count: this.runningSessionLapCount,
             serverNumber: this.serverNumber,
             sessionFile: this.sessionFile,
+            overallLapNumber: this.overallLapNumber,
             car: this.car?.toBasicJSON(),
             driver: this.driver?.toBasicJSON(),
             carDriver: this.carDriver?.toBasicJSON(),
