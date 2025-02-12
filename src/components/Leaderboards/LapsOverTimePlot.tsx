@@ -79,7 +79,7 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
             y: rollingValidMedian.map(l_idx => (driverHistory.laps[l_idx][lapAttr] as number) / 1000.0),
             mode: 'lines',
             type: 'scatter',
-            name: `Rolling Median Time`,
+            name: `Rolling Valid Median Time`,
             line: {
                 color: 'rgba(0,255,0,0.5)',
                 dash: 'dash'
