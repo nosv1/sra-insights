@@ -20,7 +20,7 @@ export const APDPlot: React.FC = () => {
         let seasonParams = params.get('seasons')?.split(',').map(Number) || [];
         let selectedDivisions = params.get('selectedDivisions')?.split(',').map(Number) || [];
         const sortByDivisionEnabled = params.get('sortByDivisionEnabled') === 'true';
-        const sortBy = params.get('sortBy') as 'apd' | 'slope';
+        const sortBy = params.get('sortBy') as 'apd' | 'slope' | 'variance';
 
         seasonParams = seasonParams[0] == 0 ? [] : seasonParams
         selectedDivisions = selectedDivisions[0] == 0 ? [] : selectedDivisions
@@ -50,7 +50,7 @@ export const APDPlot: React.FC = () => {
     const [seasonsState, setSeasons] = useState<number[]>(seasons);
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(selectedDivisions);
     const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(sortByDivisionEnabled);
-    const [sortByState, setSortBy] = useState<'apd' | 'slope'>(sortBy);
+    const [sortByState, setSortBy] = useState<'apd' | 'slope' | 'variance'>(sortBy);
     const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(singleSeasonEnabled);
     const [singleSeasonState, setSingleSeason] = useState<number | ''>(singleSeason);
 
@@ -86,6 +86,8 @@ export const APDPlot: React.FC = () => {
 
     let minSlope = Number.POSITIVE_INFINITY;
     let maxSlope = Number.NEGATIVE_INFINITY;
+    let minVariance = Number.POSITIVE_INFINITY;
+    let maxVariance = Number.NEGATIVE_INFINITY;
     let divDrivers: { [key: number]: { [key: string]: any } } = {}; // { div: { driverId: { ... } }
     let divMinMaxAPDs: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
 
@@ -99,6 +101,8 @@ export const APDPlot: React.FC = () => {
 
         minSlope = Math.min(minSlope, driverHistory.apdSlope);
         maxSlope = Math.max(maxSlope, driverHistory.apdSlope);
+        minVariance = Math.min(minVariance, driverHistory.apdVariance);
+        maxVariance = Math.max(maxVariance, driverHistory.apdVariance);
 
         const division = driverHistory.basicDriver?.raceDivision ?? 0;
         if (!divDrivers[division]) {
@@ -126,6 +130,10 @@ export const APDPlot: React.FC = () => {
     else if (sortBy === 'slope') {
         filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
     }
+    // sort by variance
+    else if (sortBy === 'variance') {
+        filteredCarDrivers.sort((a, b) => a.apdVariance - b.apdVariance);
+    }
 
     // sort by division
     if (sortByDivisionEnabledState) {
@@ -142,12 +150,15 @@ export const APDPlot: React.FC = () => {
         const slopeColor = divisionColor.brighten(
             1 - (driverHistory.apdSlope - minSlope) / (maxSlope - minSlope)
         )
+        const varianceColor = divisionColor.brighten(
+            1 - (driverHistory.apdVariance - minVariance) / (maxVariance - minVariance)
+        )
         const apdColor = divisionColor.brighten(
             1 - (driverHistory.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
             / (divMinMaxAPDs[driver?.raceDivision ?? 0].max - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
         );
 
-        const barColor = sortBy == 'slope' ? apdColor : slopeColor;
+        const barColor = sortBy == 'slope' || sortBy == 'variance' ? apdColor : slopeColor;
 
         if (insertIdxs[driver?.raceDivision ?? 0] === undefined) {
             insertIdxs[driver?.raceDivision ?? 0] = gd_idx;
@@ -155,7 +166,7 @@ export const APDPlot: React.FC = () => {
 
         return {
             x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${driver?.division?.toFixed(1)} | ${driver?.name}</a>`],
-            y: [sortBy == 'slope' ? driverHistory.apdSlope * 100 : driverHistory.tsAvgPercentDiff * 100],
+            y: [sortBy == 'slope' ? driverHistory.apdSlope * 100 : sortBy == 'variance' ? driverHistory.apdVariance * 100 : driverHistory.tsAvgPercentDiff * 100],
             type: 'bar',
             name: `${driverHistory.basicDriver?.division?.toFixed(1)} | ${driverHistory.basicDriver?.name}`,
             marker: {
@@ -167,6 +178,7 @@ export const APDPlot: React.FC = () => {
             },
             text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
                 + `Slope: ${(driverHistory.apdSlope * 100).toFixed(3)}%<br>`
+                + `Variance: ${(driverHistory.apdVariance * 100).toFixed(5)}%<br>`
                 + driverHistory.sessions
                     .map((s, s_idx) => `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
                         + `Car APD: ${(driverHistory.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
@@ -240,7 +252,7 @@ export const APDPlot: React.FC = () => {
                             gridcolor: 'rgba(255,255,255,0.1)',
                         },
                         yaxis: {
-                            title: 'APD %',
+                            title: sortBy != 'variance' ? 'APD (%)' : 'Variance (%)',
                             showgrid: true,
                             gridcolor: 'rgba(255,255,255,0.1)',
                         },
