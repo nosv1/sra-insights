@@ -308,16 +308,24 @@ a:visited {
   background-color: #e6b800;
 }
 
+.sort-options {
+  padding-top: 10px;
+}
+
+.session-count-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 10px;
+}
+
 .session-count-control {
   display: flex;
   align-items: center;
-  margin: 10px;
 }
 
 .session-count-control input[type="number"] {
   width: 60px;
-  padding: 5px;
-  margin: 0 5px;
   border: 1px solid #555;
   border-radius: 5px;
   background-color: #2c2c2c;
@@ -338,7 +346,6 @@ a:visited {
 }
 
 .session-count-control .info-icon {
-  margin-left: 10px;
   cursor: pointer;
   color: #ffcc00;
   font-size: 18px;

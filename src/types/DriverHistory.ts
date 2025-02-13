@@ -33,6 +33,7 @@ export class DriverHistory {
 
     tsAvgPercentDiff: number = 0;
     apdSlope: number = 0;
+    apdVariance: number = 0;
     sessions: Session[] = [];
     tsAvgPercentDiffs: number[] = [];
     avgPercentDiffs: number[] = [];
@@ -210,7 +211,8 @@ export class DriverHistory {
         this.tsAvgPercentDiff = this.tsAvgPercentDiffs.reduce((sum, diff) => sum + diff, 0) / this.tsAvgPercentDiffs.length;
 
         const linearRegression = ss.linearRegression(this.sessions.map((s, s_idx) => [s_idx, this.tsAvgPercentDiffs[s_idx]]));
-        this.apdSlope = linearRegression.m;
+        this.apdSlope = -linearRegression.m;
+        this.apdVariance = ss.variance(this.tsAvgPercentDiffs);
     }
 
     static medianDivisionTimesFromDriverHistories(

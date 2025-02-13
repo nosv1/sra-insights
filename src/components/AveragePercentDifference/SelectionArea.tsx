@@ -5,14 +5,14 @@ interface SelectionAreaProps {
     selectedDivisions: (number)[];
     uniqueDivisions: (number)[];
     sortByDivisionEnabled: boolean;
-    sortBy: 'apd' | 'slope';
+    sortBy: 'apd' | 'slope' | 'variance';
     minNumSessions: number;
     pastNumSessions: number;
     singleSeasonEnabled: boolean;
     singleSeason: number | '';
     setSelectedDivisions: React.Dispatch<React.SetStateAction<(number)[]>>;
     setSortByDivisionEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope'>>;
+    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'variance'>>;
     setMinNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setPastNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setSeasons: React.Dispatch<React.SetStateAction<number[]>>;
@@ -46,7 +46,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
         }
     }, [singleSeasonEnabled, singleSeason]);
 
-    const handleSortChange = (sortBy: 'apd' | 'slope') => {
+    const handleSortChange = (sortBy: 'apd' | 'slope' | 'variance') => {
         setSortBy(sortBy);
     }
 
@@ -110,48 +110,59 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
                     />
                     Sort by Slope
                 </label>
-            </div>
-            <div className="session-count-control">
-                <label htmlFor="numSessions">Past <i>n</i> Races:</label>
-                <input
-                    type="number"
-                    value={pastNumSessions}
-                    onChange={handlePastNumSessionsChange}
-                    min="1"
-                    title="Adjust the number of recent sessions to consider for computing the average."
-                    className="styled-number-input"
-                />
-            </div>
-            <div className="session-count-control">
-                <label htmlFor="numSessions">Minimum Sessions:</label>
-                <input
-                    type="number"
-                    value={minNumSessions}
-                    onChange={handleMinNumSessionsChange}
-                    min="1"
-                    title="Adjust the minimum number of sessions a driver must have to be included in the plot."
-                    className="styled-number-input"
-                />
-            </div>
-            <div className="season-filter">
-                <label>
+                <label title="Variance is the spread of APD values. The lower the variance, the more consistent the driver is.">
                     <input
-                        type="checkbox"
-                        checked={singleSeasonEnabled}
-                        onChange={handleSingleSeasonToggle}
+                        type="radio"
+                        name="sortOption"
+                        checked={sortBy == 'variance'}
+                        onChange={() => handleSortChange('variance')}
                     />
-                    Single Season
+                    Sort by Variance
                 </label>
-                {singleSeasonEnabled && (
+            </div>
+            <div className="session-count-controls">
+                <div className="session-count-control">
+                    <label htmlFor="numSessions">Past <i>n</i> Races:</label>
                     <input
                         type="number"
-                        value={singleSeason}
-                        onChange={handleSingleSeasonChange}
+                        value={pastNumSessions}
+                        onChange={handlePastNumSessionsChange}
                         min="1"
-                        title="Select a single season."
+                        title="Adjust the number of recent sessions to consider for computing the average."
                         className="styled-number-input"
                     />
-                )}
+                </div>
+                <div className="session-count-control">
+                    <label htmlFor="numSessions">Minimum Sessions:</label>
+                    <input
+                        type="number"
+                        value={minNumSessions}
+                        onChange={handleMinNumSessionsChange}
+                        min="1"
+                        title="Adjust the minimum number of sessions a driver must have to be included in the plot."
+                        className="styled-number-input"
+                    />
+                </div>
+                <div className="season-filter session-count-control">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={singleSeasonEnabled}
+                            onChange={handleSingleSeasonToggle}
+                        />
+                        Single Season
+                    </label>
+                    {singleSeasonEnabled && (
+                        <input
+                            type="number"
+                            value={singleSeason}
+                            onChange={handleSingleSeasonChange}
+                            min="1"
+                            title="Select a single season."
+                            className="styled-number-input"
+                        />
+                    )}
+                </div>
             </div>
         </div>
     );
