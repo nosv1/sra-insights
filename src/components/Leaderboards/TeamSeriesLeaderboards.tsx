@@ -38,7 +38,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             trackName: trackName || TeamSeriesSchedule.getCurrentRoundTrack(),
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
             selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
-            selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3']
+            selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4']
         };
     };
 

@@ -163,7 +163,7 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, incl
                                     name: column,
                                 }]}
                                 layout={{
-                                    title: `${data.title} - ${column} Plot`,
+                                    title: `${data.title} - ${column}`,
                                     xaxis: { title: { text: data.columns[0] } },
                                     yaxis: { title: column },
                                     height: 400,
