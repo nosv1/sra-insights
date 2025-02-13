@@ -191,11 +191,12 @@ export const APDPlot: React.FC = () => {
 
     // insert bars for division cutoffs
     if (sortBy == 'apd' && !sortByDivisionEnabledState && selectedDivisionsState.length == uniqueDivisions.length - 1) {
-        const driversPerDivision = (plotData.length + uniqueDivisions.length - 1) / (uniqueDivisions.length - 1);
+        const driversPerDivision = plotData.length / (uniqueDivisions.length - 1);
         let i = plotData.length - 1;
+        let div = uniqueDivisions.length;
         while (i > 0) {
             const division = Math.floor(i / driversPerDivision) + 1;
-            if (i % Math.floor(driversPerDivision * division) === 0) {
+            if (division != div) {
                 const pd = plotData[i];
                 const barColor = SRADivColor.fromDivision(division);
                 plotData.splice(i, 0, {
@@ -212,6 +213,7 @@ export const APDPlot: React.FC = () => {
                     },
                     text: `Division ${division} Cutoff`,
                 });
+                div = division;
             }
             i--;
         }
