@@ -52,7 +52,7 @@ export const Briefing: React.FC = () => {
                 </ol>
 
                 <p><b>
-                    Now, each driver has been compared to their division, but these values are not yet comparable across the league. To do that, we need to compare each division's middle-50% time to the each other. The process is similar to above.
+                    Now, each driver has been compared to their division, but these values are not yet comparable across the league. To do that, we need to compare each division's middle-50% time to each other. The process is similar to above.
                 </b></p>
 
                 <li>Per race, per division</li>
