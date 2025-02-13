@@ -1,3 +1,5 @@
+import moment from 'moment-timezone';
+
 export class TeamSeriesRound {
     round: number;
     trackName: string;
@@ -18,9 +20,9 @@ export class TeamSeriesSchedule {
     }
 
     static getCurrentRoundTrack = () => {
-        const now = new Date();
+        const now = moment.tz('America/New_York').utc().toDate();
         for (const round of TEAM_SERIES_SCHEDULE.rounds) {
-            if (round.date > now) {
+            if (round.date >= now) {
                 return round.trackName;
             }
         }
@@ -30,12 +32,12 @@ export class TeamSeriesSchedule {
 
 export const TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
-    new TeamSeriesRound(1, 'suzuka', new Date('2024-12-12')),
-    new TeamSeriesRound(2, 'watkins_glen', new Date('2024-12-19')),
-    new TeamSeriesRound(3, 'misano', new Date('2025-01-09')),
-    new TeamSeriesRound(4, 'nurburgring', new Date('2025-01-16')),
-    new TeamSeriesRound(5, 'zolder', new Date('2025-01-23')),
-    new TeamSeriesRound(6, 'mount_panorama', new Date('2025-02-06')),
-    new TeamSeriesRound(7, 'oulton_park', new Date('2025-02-15')),
-    new TeamSeriesRound(8, 'valencia', new Date('2025-02-20'))
+    new TeamSeriesRound(1, 'suzuka', moment.tz('2024-12-12', 'America/New_York').toDate()),
+    new TeamSeriesRound(2, 'watkins_glen', moment.tz('2024-12-19', 'America/New_York').toDate()),
+    new TeamSeriesRound(3, 'misano', moment.tz('2025-01-09', 'America/New_York').toDate()),
+    new TeamSeriesRound(4, 'nurburgring', moment.tz('2025-01-16', 'America/New_York').toDate()),
+    new TeamSeriesRound(5, 'zolder', moment.tz('2025-01-23', 'America/New_York').toDate()),
+    new TeamSeriesRound(6, 'mount_panorama', moment.tz('2025-02-06', 'America/New_York').toDate()),
+    new TeamSeriesRound(7, 'oulton_park', moment.tz('2025-02-13', 'America/New_York').toDate()),
+    new TeamSeriesRound(8, 'valencia', moment.tz('2025-02-20', 'America/New_York').toDate())
 ]);
