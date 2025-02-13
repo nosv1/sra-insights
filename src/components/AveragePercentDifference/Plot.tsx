@@ -9,6 +9,51 @@ import { SRADivColor } from '../../utils/SRADivColor';
 import { SelectionArea } from './SelectionArea';
 import { DriverHistory } from '../../types/DriverHistory';
 
+const Legend: React.FC<{ sortBy: 'apd' | 'slope' | 'variance', divMinMaxAPDs: any, divMinMaxSlopes: any, divMinMaxVariances: any }> = ({ sortBy, divMinMaxAPDs, divMinMaxSlopes, divMinMaxVariances }) => {
+    const getColor = (value: number, min: number, max: number, division: number) => {
+        const divisionColor = SRADivColor.fromDivision(division).darken().darken().darken();
+        return divisionColor.brighten((1 - (value - min) / (max - min)) / 1.1).toRgba();
+    };
+
+    const renderLegendItems = (minMax: { min: number, max: number }, division: number) => {
+        const steps = 5;
+        const stepSize = (minMax.max - minMax.min) / steps;
+        const items = [];
+        for (let i = 0; i <= steps; i++) {
+            const value = minMax.min + i * stepSize;
+            items.push(
+                <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: 20, height: 20, backgroundColor: getColor(value, minMax.min, minMax.max, division), marginRight: 8 }}></div>
+                    <span>{`${(value * 100).toFixed(2)}%`}</span>
+                </div>
+            );
+        }
+        return items;
+    };
+
+    return (
+        <div className="custom-legend">
+            <h4 style={{ textAlign: 'center', marginBottom: '5px' }}>Legend - Sort: {sortBy.toUpperCase()} | Color: {sortBy === 'apd' ? 'SLOPE' : 'APD'}</h4>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                {Object.keys(divMinMaxAPDs).map((division) => {
+                    let minMax;
+                    if (sortBy === 'apd') {
+                        minMax = divMinMaxSlopes[division];
+                    } else {
+                        minMax = divMinMaxAPDs[division];
+                    }
+                    return (
+                        <div key={division} style={{ textAlign: 'center' }}>
+                            <h5 style={{ margin: '5px 0' }}>Division {division}</h5>
+                            {renderLegendItems(minMax, parseInt(division))}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
 export const APDPlot: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -39,33 +84,33 @@ export const APDPlot: React.FC = () => {
         }
     };
 
-    let { minNumSessions, pastNumSessions, seasons, selectedDivisions, sortByDivisionEnabled, sortBy, singleSeasonEnabled, singleSeason } = getParams();
+    let params = getParams();
 
     const trackNames: string[] = []
     const divisions: number[] = []
     const sessionTypes = ['R']
 
-    const [minNumSessionsState, setMinNumSessions] = useState<number>(minNumSessions);
-    const [pastNumSessionsState, setPastNumSessions] = useState<number>(pastNumSessions);
-    const [seasonsState, setSeasons] = useState<number[]>(seasons);
-    const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(selectedDivisions);
-    const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(sortByDivisionEnabled);
-    const [sortByState, setSortBy] = useState<'apd' | 'slope' | 'variance'>(sortBy);
-    const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(singleSeasonEnabled);
-    const [singleSeasonState, setSingleSeason] = useState<number | ''>(singleSeason);
+    const [minNumSessionsState, setMinNumSessions] = useState<number>(params.minNumSessions);
+    const [pastNumSessionsState, setPastNumSessions] = useState<number>(params.pastNumSessions);
+    const [seasonsState, setSeasons] = useState<number[]>(params.seasons);
+    const [selectedDivisionsState, setSelectedDivisions] = useState<number[]>(params.selectedDivisions);
+    const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(params.sortByDivisionEnabled);
+    const [sortByState, setSortBy] = useState<'apd' | 'slope' | 'variance'>(params.sortBy);
+    const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(params.singleSeasonEnabled);
+    const [singleSeasonState, setSingleSeason] = useState<number | ''>(params.singleSeason);
 
     useEffect(() => {
         if (location.search === '')
             return;
-        let { minNumSessions, pastNumSessions, seasons, selectedDivisions, sortByDivisionEnabled, sortBy, singleSeasonEnabled, singleSeason } = getParams();
-        setMinNumSessions(minNumSessions);
-        setPastNumSessions(pastNumSessions);
-        setSeasons(seasons);
-        setSelectedDivisions(selectedDivisions);
-        setSortByDivisionEnabled(sortByDivisionEnabled);
-        setSortBy(sortBy);
-        setSingleSeasonEnabled(singleSeasonEnabled);
-        setSingleSeason(singleSeason);
+        const params = getParams();
+        setMinNumSessions(params.minNumSessions);
+        setPastNumSessions(params.pastNumSessions);
+        setSeasons(params.seasons);
+        setSelectedDivisions(params.selectedDivisions);
+        setSortByDivisionEnabled(params.sortByDivisionEnabled);
+        setSortBy(params.sortBy);
+        setSingleSeasonEnabled(params.singleSeasonEnabled);
+        setSingleSeason(params.singleSeason);
     }, [location.search]);
 
     useEffect(() => {
@@ -84,25 +129,23 @@ export const APDPlot: React.FC = () => {
     const uniqueDivisions = Array.from(new Set(carDrivers.map(cd => cd.basicDriver?.raceDivision ?? 0)));
     const driverHistories = DriverHistory.fromCarDrivers(carDrivers, true);
 
-    let minSlope = Number.POSITIVE_INFINITY;
-    let maxSlope = Number.NEGATIVE_INFINITY;
-    let minVariance = Number.POSITIVE_INFINITY;
-    let maxVariance = Number.NEGATIVE_INFINITY;
+    const filteredCarDrivers = driverHistories
+        .filter(driverHistory => (selectedDivisionsState.includes(driverHistory.basicDriver?.raceDivision ?? 0)
+            && (driverHistory.sessions.length >= minNumSessionsState))
+        );
+
     let divDrivers: { [key: number]: { [key: string]: any } } = {}; // { div: { driverId: { ... } }
     let divMinMaxAPDs: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
+    let divMinMaxSlopes: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
+    let divMinMaxVariances: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
 
-    driverHistories.forEach(driverHistory => {
+    filteredCarDrivers.forEach(driverHistory => {
         if (!driverHistory.basicDriver) return;
 
         if (!driverHistory.tsAvgPercentDiff) return;
 
         const driverId = driverHistory.basicDriver.driverId;
         if (!driverId) return;
-
-        minSlope = Math.min(minSlope, driverHistory.apdSlope);
-        maxSlope = Math.max(maxSlope, driverHistory.apdSlope);
-        minVariance = Math.min(minVariance, driverHistory.apdVariance);
-        maxVariance = Math.max(maxVariance, driverHistory.apdVariance);
 
         const division = driverHistory.basicDriver?.raceDivision ?? 0;
         if (!divDrivers[division]) {
@@ -112,26 +155,27 @@ export const APDPlot: React.FC = () => {
 
         if (!divMinMaxAPDs[division]) {
             divMinMaxAPDs[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
+            divMinMaxSlopes[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
+            divMinMaxVariances[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
         }
         divMinMaxAPDs[division].min = Math.min(divMinMaxAPDs[division].min, driverHistory.tsAvgPercentDiff);
         divMinMaxAPDs[division].max = Math.max(divMinMaxAPDs[division].max, driverHistory.tsAvgPercentDiff);
+        divMinMaxSlopes[division].min = Math.min(divMinMaxSlopes[division].min, driverHistory.apdSlope);
+        divMinMaxSlopes[division].max = Math.max(divMinMaxSlopes[division].max, driverHistory.apdSlope);
+        divMinMaxVariances[division].min = Math.min(divMinMaxVariances[division].min, driverHistory.apdVariance);
+        divMinMaxVariances[division].max = Math.max(divMinMaxVariances[division].max, driverHistory.apdVariance);
     });
 
-    const filteredCarDrivers = driverHistories
-        .filter(driverHistory => (selectedDivisions.includes(driverHistory.basicDriver?.raceDivision ?? 0)
-            && (driverHistory.sessions.length >= minNumSessions))
-        );
-
     // sort by apd
-    if (sortBy === 'apd') {
+    if (sortByState === 'apd') {
         filteredCarDrivers.sort((a, b) => a.tsAvgPercentDiff - b.tsAvgPercentDiff);
     }
     // sort by slope
-    else if (sortBy === 'slope') {
+    else if (sortByState === 'slope') {
         filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
     }
     // sort by variance
-    else if (sortBy === 'variance') {
+    else if (sortByState === 'variance') {
         filteredCarDrivers.sort((a, b) => a.apdVariance - b.apdVariance);
     }
 
@@ -148,17 +192,22 @@ export const APDPlot: React.FC = () => {
         const driver = driverHistory.basicDriver;
         const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
         const slopeColor = divisionColor.brighten(
-            1 - (driverHistory.apdSlope - minSlope) / (maxSlope - minSlope)
+            (1 - (driverHistory.apdSlope - divMinMaxSlopes[driver?.raceDivision ?? 0].min)
+                / (divMinMaxSlopes[driver?.raceDivision ?? 0].max - divMinMaxSlopes[driver?.raceDivision ?? 0].min))
+            / 1.1
         )
         const varianceColor = divisionColor.brighten(
-            1 - (driverHistory.apdVariance - minVariance) / (maxVariance - minVariance)
+            (1 - (driverHistory.apdVariance - divMinMaxVariances[driver?.raceDivision ?? 0].min)
+                / (divMinMaxVariances[driver?.raceDivision ?? 0].max - divMinMaxVariances[driver?.raceDivision ?? 0].min))
+            / 1.1
         )
         const apdColor = divisionColor.brighten(
-            1 - (driverHistory.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
-            / (divMinMaxAPDs[driver?.raceDivision ?? 0].max - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
+            (1 - (driverHistory.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
+                / (divMinMaxAPDs[driver?.raceDivision ?? 0].max - divMinMaxAPDs[driver?.raceDivision ?? 0].min))
+            / 1.1
         );
 
-        const barColor = sortBy == 'slope' || sortBy == 'variance' ? apdColor : slopeColor;
+        const barColor = sortByState == 'slope' || sortByState == 'variance' ? apdColor : slopeColor;
 
         if (insertIdxs[driver?.raceDivision ?? 0] === undefined) {
             insertIdxs[driver?.raceDivision ?? 0] = gd_idx;
@@ -166,7 +215,7 @@ export const APDPlot: React.FC = () => {
 
         return {
             x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${driver?.division?.toFixed(1)} | ${driver?.name}</a>`],
-            y: [sortBy == 'slope' ? driverHistory.apdSlope * 100 : sortBy == 'variance' ? driverHistory.apdVariance * 100 : driverHistory.tsAvgPercentDiff * 100],
+            y: [sortByState == 'slope' ? driverHistory.apdSlope * 100 : sortByState == 'variance' ? driverHistory.apdVariance * 100 : driverHistory.tsAvgPercentDiff * 100],
             type: 'bar',
             name: `${driverHistory.basicDriver?.division?.toFixed(1)} | ${driverHistory.basicDriver?.name}`,
             marker: {
@@ -190,8 +239,8 @@ export const APDPlot: React.FC = () => {
     });
 
     // insert bars for division cutoffs
-    if (sortBy == 'apd' && !sortByDivisionEnabledState && selectedDivisionsState.length == uniqueDivisions.length - 1) {
-        const driversPerDivision = plotData.length / (uniqueDivisions.length - 1);
+    if (sortByState == 'apd' && !sortByDivisionEnabledState && selectedDivisionsState.length == uniqueDivisions.length - 1) {
+        const driversPerDivision = (plotData.length + (uniqueDivisions.length - 1)) / (uniqueDivisions.length - 1);
         let i = plotData.length - 1;
         let div = uniqueDivisions.length;
         while (i > 0) {
@@ -239,34 +288,37 @@ export const APDPlot: React.FC = () => {
                 singleSeason={singleSeasonState}
                 setSingleSeason={setSingleSeason}
             />
+            <div className="plot-container">
+                <Legend sortBy={sortByState} divMinMaxAPDs={divMinMaxAPDs} divMinMaxSlopes={divMinMaxSlopes} divMinMaxVariances={divMinMaxVariances} />
+                <div className="plot">
+                    <Plot
+                        data={plotData}
+                        layout={{
+                            height: 800,
+                            width: window.innerWidth * 0.98,
+                            title: `Average Percent Differences - ${plotData.length} Drivers`,
+                            xaxis: {
+                                title: 'Driver',
+                                showgrid: true,
+                                gridcolor: 'rgba(255,255,255,0.1)',
+                            },
+                            yaxis: {
+                                title: sortByState != 'variance' ? 'APD (%)' : 'Variance (%)',
+                                showgrid: true,
+                                gridcolor: 'rgba(255,255,255,0.1)',
+                            },
+                            plot_bgcolor: 'rgba(0,0,0,0)',
+                            paper_bgcolor: '#2c2c2c',
+                            font: {
+                                color: '#e0e0e0',
+                            },
+                            hovermode: 'closest',
+                        }}
+                    />
+                </div>
+            </div>
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}
-            <div className="plot">
-                <Plot
-                    data={plotData}
-                    layout={{
-                        height: 800,
-                        width: window.innerWidth * 0.98,
-                        title: `Average Percent Differences - ${plotData.length} Drivers`,
-                        xaxis: {
-                            title: 'Driver',
-                            showgrid: true,
-                            gridcolor: 'rgba(255,255,255,0.1)',
-                        },
-                        yaxis: {
-                            title: sortBy != 'variance' ? 'APD (%)' : 'Variance (%)',
-                            showgrid: true,
-                            gridcolor: 'rgba(255,255,255,0.1)',
-                        },
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        paper_bgcolor: '#2c2c2c',
-                        font: {
-                            color: '#e0e0e0',
-                        },
-                        hovermode: 'closest',
-                    }}
-                />
-            </div>
         </div>
     );
 }
