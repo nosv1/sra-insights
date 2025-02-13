@@ -128,18 +128,18 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
                         value={pastNumSessions}
                         onChange={handlePastNumSessionsChange}
                         min="1"
-                        title="Adjust the number of recent sessions to consider for computing the average."
+                        title="Adjust the number of recent races to consider for computing the average."
                         className="styled-number-input"
                     />
                 </div>
                 <div className="session-count-control">
-                    <label htmlFor="numSessions">Minimum Sessions:</label>
+                    <label htmlFor="numSessions">Minimum Races:</label>
                     <input
                         type="number"
                         value={minNumSessions}
                         onChange={handleMinNumSessionsChange}
                         min="1"
-                        title="Adjust the minimum number of sessions a driver must have to be included in the plot."
+                        title="Adjust the minimum number of races a driver must have to be included in the plot."
                         className="styled-number-input"
                     />
                 </div>
