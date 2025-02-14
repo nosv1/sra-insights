@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { useLocation, useNavigate } from 'react-router-dom';
-import * as ss from 'simple-statistics';
 import { useTeamSeriesCarDrivers } from '../../hooks/useCarDrivers';
-import { CarDriver } from '../../types/CarDriver';
-import { Session } from '../../types/Session';
 import { SRADivColor } from '../../utils/SRADivColor';
 import { SelectionArea } from './SelectionArea';
 import { DriverHistory } from '../../types/DriverHistory';
@@ -288,6 +285,8 @@ export const APDPlot: React.FC = () => {
                 singleSeason={singleSeasonState}
                 setSingleSeason={setSingleSeason}
             />
+            {loading && <p>Loading...</p>}
+            {error && <p>Error: {error}</p>}
             <div className="plot-container">
                 <Legend sortBy={sortByState} divMinMaxAPDs={divMinMaxAPDs} divMinMaxSlopes={divMinMaxSlopes} divMinMaxVariances={divMinMaxVariances} />
                 <div className="plot">
@@ -317,8 +316,6 @@ export const APDPlot: React.FC = () => {
                     />
                 </div>
             </div>
-            {loading && <p>Loading...</p>}
-            {error && <p>Error: {error}</p>}
         </div>
     );
 }

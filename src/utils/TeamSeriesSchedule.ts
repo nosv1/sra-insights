@@ -19,14 +19,18 @@ export class TeamSeriesSchedule {
         this.rounds = rounds;
     }
 
-    static getCurrentRoundTrack = () => {
+    getCurrentRound(): TeamSeriesRound {
         const now = moment.tz('America/New_York').utc().toDate();
-        for (const round of TEAM_SERIES_SCHEDULE.rounds) {
+        for (const round of this.rounds) {
             if (round.date >= now) {
-                return round.trackName;
+                return round;
             }
         }
-        return TEAM_SERIES_SCHEDULE.rounds[TEAM_SERIES_SCHEDULE.rounds.length - 1].trackName;
+        return this.rounds[this.rounds.length - 1];
+    };
+
+    static getTrackFromRound(round: number): string {
+        return TEAM_SERIES_SCHEDULE.rounds[round - 1].trackName;
     };
 }
 

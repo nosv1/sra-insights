@@ -1,11 +1,11 @@
 import { Node, Record } from "neo4j-driver";
-import { PointsReference } from './PointsReference';
+import { TeamSeriesPointsReference } from './TeamSeriesPointsReference';
 
 export class Season {
     maxDivisions: number;
     season: number;
 
-    pointsReference: { [key: string]: PointsReference } = {};
+    pointsReference: { [key: string]: TeamSeriesPointsReference } = {};
 
     constructor(data: Partial<Season> = {}) {
         this.maxDivisions = data.maxDivisions ?? 0;
@@ -21,7 +21,7 @@ export class Season {
 
     static fromRecord(record: Record): Season {
         let season = Season.fromNode(record.get('tss'));
-        let pointsReference = PointsReference.fromRecord(record);
+        let pointsReference = TeamSeriesPointsReference.fromRecord(record);
         if (pointsReference) {
             season.pointsReference[pointsReference.position] = pointsReference;
         }
