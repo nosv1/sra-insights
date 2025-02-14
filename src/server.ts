@@ -2,7 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import neo4j from 'neo4j-driver';
-import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchWeekendByKey } from './services/SessionService';
+import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchTeamSeriesRacesByAttrs, fetchWeekendByKey } from './services/SessionService';
 import { BasicDriver } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
 import { Lap } from './types/Lap';
@@ -144,6 +144,8 @@ app.get('/api/laps', async (req, res) => {
     const beforeDate = req.query.beforeDate || '9999-12-31';
     const trackName = req.query.trackName || '';
     const carGroups = stringToArray(req.query.carGroups as string, String);
+    const sessionTypes = stringToArray(req.query.sessionTypes as string, String);
+    const sessionKeys = stringToArray(req.query.sessionKeys as string, String);
 
     const result = await runQuery(`
         MATCH (l:Lap)-[:LAP_TO_SESSION]->(s:Session)
@@ -155,11 +157,13 @@ app.get('/api/laps', async (req, res) => {
             AND s.finish_time < datetime($beforeDate)
             AND s.track_name CONTAINS $trackName
             AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
+            AND (size($sessionTypes) = 0 OR s.session_type IN $sessionTypes)
+            AND (size($sessionKeys) = 0 OR s.key_ IN $sessionKeys)
         RETURN l, s, c, cd, d
         ORDER BY s.finish_time ASC, l.lap_number ASC
         LIMIT 10000`, // we handle this in the useLaps hook where we loop until we get less than 10000 laps
-        `Fetching laps after \`${afterDate}\`, before \`${beforeDate}\`, at track \`${trackName}\``,
-        { afterDate, beforeDate, trackName, carGroups }
+        `Fetching laps after \`${afterDate}\`, before \`${beforeDate}\`, at track \`${trackName}\`, with car groups \`${carGroups}\`, and session types \`${sessionTypes}\``,
+        { afterDate, beforeDate, trackName, carGroups, sessionTypes, sessionKeys }
     );
 
     const lapsJSON = result.records.map(record =>
@@ -250,7 +254,25 @@ app.get('/api/sessions/complete-weekend', async (req, res) => {
     res.json(weekend);
 });
 
-app.get('/api/sessions/team-series-weekends', async (req, res) => {
+app.get('/api/sessions/team-series-tracks', async (req, res) => {
+    const season = req.query.season || '';
+
+    const result = await runQuery(`
+        MATCH (ts:TeamSeriesSession)-[]->(s:Session)
+        WHERE ts.season = toInteger($season)
+        WITH ts, s
+        ORDER BY s.session_file
+        // RETURN ts, s
+        RETURN DISTINCT s.track_name as track_name`,
+        `Fetching team series tracks for season ${season}`,
+        { season }
+    );
+
+    const tracks = result.records.map(r => r.get('track_name')).filter(t => t != undefined);
+    return res.json(tracks);
+});
+
+app.get('/api/sessions/team-series-races', async (req, res) => {
     const trackName = req.query.trackName || '';
     const season = req.query.season || '';
 
@@ -267,6 +289,11 @@ app.get('/api/sessions/team-series-weekends', async (req, res) => {
     );
 
     const sessions = result.records.map(r => Session.fromRecord(r)).filter(s => s != undefined);
+    return res.json(sessions.map(s => s?.toJSON()));
+});
+
+app.get('/api/sessions/team-series-weekends', async (req, res) => {
+    const sessions = await fetchTeamSeriesRacesByAttrs(req.query.trackName as string, Number(req.query.season));
     const completeWeekends = await Promise.all(sessions.map(session => fetchCompleteWeekendByKey(session.key_)));
     res.json(completeWeekends);
 });
@@ -320,7 +347,9 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
             { name: 'afterDate', type: 'string' },
             { name: 'beforeDate', type: 'string' },
             { name: 'trackName', type: 'string' },
-            { name: 'carGroups', type: 'string[]' }
+            { name: 'carGroups', type: 'string[]' },
+            { name: 'sessionTypes', type: 'string[]' },
+            { name: 'sessionKeys', type: 'string[]' }
         ],
         nodes: ["Lap", "Session", "Car", "CarDriver", "Driver"],
         returns: 'Lap[]',
@@ -332,6 +361,13 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
         ],
         nodes: ["Session", "Car", "CarDriver", "Driver", "Lap"],
         returns: 'Session'
+    },
+    [`/api/sessions/recent`]: {
+        params: [
+            { name: 'limit', type: 'number' }
+        ],
+        nodes: ["Session"],
+        returns: 'Session[]'
     },
     [`/api/sessions/basic-weekend`]: {
         params: [
@@ -347,13 +383,28 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
         nodes: ["Session"],
         returns: 'Weekend'
     },
-    [`/api/sessions/team-series-weekends`]: {
+    [`/api/sessions/team-series-tracks`]: {
+        params: [
+            { name: 'season', type: 'number' }
+        ],
+        nodes: ["Session", "TeamSeriesSession"],
+        returns: 'string[]'
+    },
+    [`/api/sessions/team-series-races`]: {
         params: [
             { name: 'trackName', type: 'string' },
             { name: 'season', type: 'number' }
         ],
         nodes: ["Session", "TeamSeriesSession"],
         returns: 'Session[]'
+    },
+    [`/api/sessions/team-series-weekends`]: {
+        params: [
+            { name: 'trackName', type: 'string' },
+            { name: 'season', type: 'number' }
+        ],
+        nodes: ["Session", "TeamSeriesSession"],
+        returns: 'Weekend[]'
     },
     [`/api/seasons/points-reference`]: {
         params: [
