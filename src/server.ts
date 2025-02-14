@@ -156,7 +156,8 @@ app.get('/api/laps', async (req, res) => {
             AND s.track_name CONTAINS $trackName
             AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
         RETURN l, s, c, cd, d
-        ORDER BY s.finish_time ASC, l.lap_number ASC`,
+        ORDER BY s.finish_time ASC, l.lap_number ASC
+        LIMIT 10000`, // we handle this in the useLaps hook where we loop until we get less than 10000 laps
         `Fetching laps after \`${afterDate}\`, before \`${beforeDate}\`, at track \`${trackName}\``,
         { afterDate, beforeDate, trackName, carGroups }
     );
@@ -285,7 +286,7 @@ app.get('/api/seasons/points-reference', async (req, res) => {
     res.json(seasons.map(season => season.toJSON()));
 });
 
-const apiRoutes: { [key: string]: { params: { name: string, type: string }[], nodes: string[], returns: string } } = {
+const apiRoutes: { [key: string]: { params: { name: string, type: string }[], nodes: string[], returns: string, note?: string } } = {
     [`/api/car-drivers/complete`]: {
         params: [],
         nodes: ["Driver", "Car", "CarDriver"],
@@ -293,10 +294,10 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
     },
     [`/api/car-drivers/team-series`]: {
         params: [
-            { name: 'trackNames', type: 'string' },
-            { name: 'divisions', type: 'number' },
-            { name: 'seasons', type: 'number' },
-            { name: 'sessionTypes', type: 'string' },
+            { name: 'trackNames', type: 'string[]' },
+            { name: 'divisions', type: 'number[]' },
+            { name: 'seasons', type: 'number[]' },
+            { name: 'sessionTypes', type: 'string[]' },
             { name: 'pastNumSessions', type: 'number' }
         ],
         nodes: ["Driver", "Car", "CarDriver", "Session", "TeamSeriesSession"],
@@ -322,7 +323,8 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
             { name: 'carGroups', type: 'string[]' }
         ],
         nodes: ["Lap", "Session", "Car", "CarDriver", "Driver"],
-        returns: 'Lap[]'
+        returns: 'Lap[]',
+        note: 'Limit: 10000 laps per request'
     },
     [`/api/sessions/complete`]: {
         params: [
@@ -348,7 +350,7 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
     [`/api/sessions/team-series-weekends`]: {
         params: [
             { name: 'trackName', type: 'string' },
-            { name: 'season', type: 'string' }
+            { name: 'season', type: 'number' }
         ],
         nodes: ["Session", "TeamSeriesSession"],
         returns: 'Session[]'

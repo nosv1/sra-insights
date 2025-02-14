@@ -17,8 +17,8 @@ export const Header: React.FC = () => {
         return () => clearInterval(intervalId); // Cleanup interval on component unmount
     }, []);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    // if (loading) return <div>Loading...</div>;
+    // if (error) return <div>Error: {error}</div>;
 
     return (
         <header>
