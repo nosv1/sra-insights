@@ -6,7 +6,17 @@ import { SRADivColor } from '../../utils/SRADivColor';
 import { SelectionArea } from './SelectionArea';
 import { DriverHistory } from '../../types/DriverHistory';
 
-const Legend: React.FC<{ sortBy: 'apd' | 'slope' | 'variance', divMinMaxAPDs: any, divMinMaxSlopes: any, divMinMaxVariances: any }> = ({ sortBy, divMinMaxAPDs, divMinMaxSlopes, divMinMaxVariances }) => {
+const Legend: React.FC<{
+    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance',
+    divMinMax: {
+        [division: number]: {
+            APD: { min: number, max: number },
+            slope: { min: number, max: number },
+            variance: { min: number, max: number },
+            avgAPD_ROC: { min: number, max: number }
+        }
+    }
+}> = ({ sortBy, divMinMax }) => {
     const getColor = (value: number, min: number, max: number, division: number) => {
         const divisionColor = SRADivColor.fromDivision(division).darken().darken().darken();
         return divisionColor.brighten((1 - (value - min) / (max - min)) / 1.1).toRgba();
@@ -30,15 +40,12 @@ const Legend: React.FC<{ sortBy: 'apd' | 'slope' | 'variance', divMinMaxAPDs: an
 
     return (
         <div className="custom-legend">
-            <h4 style={{ textAlign: 'center', marginBottom: '5px' }}>Legend - Sort: {sortBy.toUpperCase()} | Color: {sortBy === 'apd' ? 'SLOPE' : 'APD'}</h4>
+            <h4 style={{ textAlign: 'center', marginBottom: '5px' }}>
+                Legend - Sort: {sortBy.toUpperCase()} | Color: {sortBy === 'apd' ? 'Avg ROC' : 'APD'}
+            </h4>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                {Object.keys(divMinMaxAPDs).map((division) => {
-                    let minMax;
-                    if (sortBy === 'apd') {
-                        minMax = divMinMaxSlopes[division];
-                    } else {
-                        minMax = divMinMaxAPDs[division];
-                    }
+                {Object.keys(divMinMax).map((division) => {
+                    const minMax = sortBy === 'apd' ? divMinMax[Number(division)].slope : divMinMax[Number(division)].APD;
                     return (
                         <div key={division} style={{ textAlign: 'center' }}>
                             <h5 style={{ margin: '5px 0' }}>Division {division}</h5>
@@ -92,7 +99,7 @@ export const APDPlot: React.FC = () => {
     const [seasonsState, setSeasons] = useState<number[]>(params.seasons);
     const [selectedDivisionsState, setSelectedDivisions] = useState<number[]>(params.selectedDivisions);
     const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(params.sortByDivisionEnabled);
-    const [sortByState, setSortBy] = useState<'apd' | 'slope' | 'variance'>(params.sortBy);
+    const [sortByState, setSortBy] = useState<'apd' | 'avg roc' | 'slope' | 'variance'>(params.sortBy);
     const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(params.singleSeasonEnabled);
     const [singleSeasonState, setSingleSeason] = useState<number | ''>(params.singleSeason);
 
@@ -132,9 +139,14 @@ export const APDPlot: React.FC = () => {
         );
 
     let divDrivers: { [key: number]: { [key: string]: any } } = {}; // { div: { driverId: { ... } }
-    let divMinMaxAPDs: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
-    let divMinMaxSlopes: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
-    let divMinMaxVariances: { [key: number]: { min: number, max: number } } = {}; // { div: { min: 0, max: 0 } }
+    let divMinMax: {
+        [key: number]: {
+            APD: { min: number, max: number },
+            slope: { min: number, max: number },
+            variance: { min: number, max: number },
+            avgAPD_ROC: { min: number, max: number }
+        }
+    } = {};
 
     filteredCarDrivers.forEach(driverHistory => {
         if (!driverHistory.basicDriver) return;
@@ -150,17 +162,23 @@ export const APDPlot: React.FC = () => {
         }
         divDrivers[division][driverId] = driverHistory;
 
-        if (!divMinMaxAPDs[division]) {
-            divMinMaxAPDs[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
-            divMinMaxSlopes[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
-            divMinMaxVariances[division] = { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY };
+        if (!divMinMax[division]) {
+            divMinMax[division] = {
+                APD: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
+                slope: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
+                variance: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
+                avgAPD_ROC: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
+            };
         }
-        divMinMaxAPDs[division].min = Math.min(divMinMaxAPDs[division].min, driverHistory.tsAvgPercentDiff);
-        divMinMaxAPDs[division].max = Math.max(divMinMaxAPDs[division].max, driverHistory.tsAvgPercentDiff);
-        divMinMaxSlopes[division].min = Math.min(divMinMaxSlopes[division].min, driverHistory.apdSlope);
-        divMinMaxSlopes[division].max = Math.max(divMinMaxSlopes[division].max, driverHistory.apdSlope);
-        divMinMaxVariances[division].min = Math.min(divMinMaxVariances[division].min, driverHistory.apdVariance);
-        divMinMaxVariances[division].max = Math.max(divMinMaxVariances[division].max, driverHistory.apdVariance);
+
+        divMinMax[division].APD.min = Math.min(divMinMax[division].APD.min, driverHistory.tsAvgPercentDiff);
+        divMinMax[division].APD.max = Math.max(divMinMax[division].APD.max, driverHistory.tsAvgPercentDiff);
+        divMinMax[division].slope.min = Math.min(divMinMax[division].slope.min, driverHistory.apdSlope);
+        divMinMax[division].slope.max = Math.max(divMinMax[division].slope.max, driverHistory.apdSlope);
+        divMinMax[division].variance.min = Math.min(divMinMax[division].variance.min, driverHistory.apdVariance);
+        divMinMax[division].variance.max = Math.max(divMinMax[division].variance.max, driverHistory.apdVariance);
+        divMinMax[division].avgAPD_ROC.min = Math.min(divMinMax[division].avgAPD_ROC.min, driverHistory.avgAPD_ROC);
+        divMinMax[division].avgAPD_ROC.max = Math.max(divMinMax[division].avgAPD_ROC.max, driverHistory.avgAPD_ROC);
     });
 
     // sort by apd
@@ -170,6 +188,10 @@ export const APDPlot: React.FC = () => {
     // sort by slope
     else if (sortByState === 'slope') {
         filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
+    }
+    // sort by avg roc
+    else if (sortByState === 'avg roc') {
+        filteredCarDrivers.sort((a, b) => a.avgAPD_ROC - b.avgAPD_ROC);
     }
     // sort by variance
     else if (sortByState === 'variance') {
@@ -189,22 +211,31 @@ export const APDPlot: React.FC = () => {
         const driver = driverHistory.basicDriver;
         const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
         const slopeColor = divisionColor.brighten(
-            (1 - (driverHistory.apdSlope - divMinMaxSlopes[driver?.raceDivision ?? 0].min)
-                / (divMinMaxSlopes[driver?.raceDivision ?? 0].max - divMinMaxSlopes[driver?.raceDivision ?? 0].min))
+            (1 - (driverHistory.apdSlope - divMinMax[driver?.raceDivision ?? 0].slope.min)
+                / (divMinMax[driver?.raceDivision ?? 0].slope.max - divMinMax[driver?.raceDivision ?? 0].slope.min))
             / 1.1
-        )
+        );
         const varianceColor = divisionColor.brighten(
-            (1 - (driverHistory.apdVariance - divMinMaxVariances[driver?.raceDivision ?? 0].min)
-                / (divMinMaxVariances[driver?.raceDivision ?? 0].max - divMinMaxVariances[driver?.raceDivision ?? 0].min))
+            (1 - (driverHistory.apdVariance - divMinMax[driver?.raceDivision ?? 0].variance.min)
+                / (divMinMax[driver?.raceDivision ?? 0].variance.max - divMinMax[driver?.raceDivision ?? 0].variance.min))
             / 1.1
-        )
+        );
+        const avgROCColor = divisionColor.brighten(
+            (1 - (driverHistory.avgAPD_ROC - divMinMax[driver?.raceDivision ?? 0].avgAPD_ROC.min)
+                / (divMinMax[driver?.raceDivision ?? 0].avgAPD_ROC.max - divMinMax[driver?.raceDivision ?? 0].avgAPD_ROC.min))
+            / 1.1
+        );
         const apdColor = divisionColor.brighten(
-            (1 - (driverHistory.tsAvgPercentDiff - divMinMaxAPDs[driver?.raceDivision ?? 0].min)
-                / (divMinMaxAPDs[driver?.raceDivision ?? 0].max - divMinMaxAPDs[driver?.raceDivision ?? 0].min))
+            (1 - (driverHistory.tsAvgPercentDiff - divMinMax[driver?.raceDivision ?? 0].APD.min)
+                / (divMinMax[driver?.raceDivision ?? 0].APD.max - divMinMax[driver?.raceDivision ?? 0].APD.min))
             / 1.1
         );
 
-        const barColor = sortByState == 'slope' || sortByState == 'variance' ? apdColor : slopeColor;
+        const barColor = (sortByState == 'slope'
+            || sortByState == 'avg roc'
+            || sortByState == 'variance'
+            ? apdColor : avgROCColor
+        );
 
         if (insertIdxs[driver?.raceDivision ?? 0] === undefined) {
             insertIdxs[driver?.raceDivision ?? 0] = gd_idx;
@@ -212,7 +243,12 @@ export const APDPlot: React.FC = () => {
 
         return {
             x: [`<a href="/driver?driverId=${driver?.driverId}" target="_blank">${driver?.division?.toFixed(1)} | ${driver?.name}</a>`],
-            y: [sortByState == 'slope' ? driverHistory.apdSlope * 100 : sortByState == 'variance' ? driverHistory.apdVariance * 100 : driverHistory.tsAvgPercentDiff * 100],
+            y: [
+                sortByState == 'slope' ? driverHistory.apdSlope * 100
+                    : sortByState == 'variance' ? driverHistory.apdVariance * 100
+                        : sortByState == 'avg roc' ? driverHistory.avgAPD_ROC * 100
+                            : driverHistory.tsAvgPercentDiff * 100
+            ],
             type: 'bar',
             name: `${driverHistory.basicDriver?.division?.toFixed(1)} | ${driverHistory.basicDriver?.name}`,
             marker: {
@@ -224,6 +260,7 @@ export const APDPlot: React.FC = () => {
             },
             text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
                 + `Slope: ${(driverHistory.apdSlope * 100).toFixed(3)}%<br>`
+                + `Avg Rate of Change: ${(driverHistory.avgAPD_ROC * 100).toFixed(3)}%<br>`
                 + `Variance: ${(driverHistory.apdVariance * 100).toFixed(5)}%<br>`
                 + driverHistory.sessions
                     .map((s, s_idx) => `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
@@ -288,7 +325,7 @@ export const APDPlot: React.FC = () => {
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}
             <div className="plot-container">
-                <Legend sortBy={sortByState} divMinMaxAPDs={divMinMaxAPDs} divMinMaxSlopes={divMinMaxSlopes} divMinMaxVariances={divMinMaxVariances} />
+                <Legend sortBy={sortByState} divMinMax={divMinMax} />
                 <div className="plot">
                     <Plot
                         data={plotData}
@@ -302,7 +339,12 @@ export const APDPlot: React.FC = () => {
                                 gridcolor: 'rgba(255,255,255,0.1)',
                             },
                             yaxis: {
-                                title: sortByState != 'variance' ? 'APD (%)' : 'Variance (%)',
+                                title: (
+                                    sortByState == 'slope' ? 'Slope'
+                                        : sortByState == 'variance' ? 'Variance'
+                                            : sortByState == 'avg roc' ? 'Avg ROC'
+                                                : 'APD'
+                                ),
                                 showgrid: true,
                                 gridcolor: 'rgba(255,255,255,0.1)',
                             },

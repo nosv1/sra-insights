@@ -33,6 +33,7 @@ export class DriverHistory {
 
     tsAvgPercentDiff: number = 0;
     apdSlope: number = 0;
+    avgAPD_ROC: number = 0;
     apdVariance: number = 0;
     sessions: Session[] = [];
     tsAvgPercentDiffs: number[] = [];
@@ -212,6 +213,8 @@ export class DriverHistory {
 
         const linearRegression = ss.linearRegression(this.sessions.map((s, s_idx) => [s_idx, this.tsAvgPercentDiffs[s_idx]]));
         this.apdSlope = -linearRegression.m;
+        let rocs = this.tsAvgPercentDiffs.map((diff, idx) => idx > 0 ? this.tsAvgPercentDiffs[idx - 1] - diff : 0).filter(diff => diff !== 0);
+        this.avgAPD_ROC = rocs.length > 0 ? ss.mean(rocs) : 0;
         this.apdVariance = ss.variance(this.tsAvgPercentDiffs);
     }
 
