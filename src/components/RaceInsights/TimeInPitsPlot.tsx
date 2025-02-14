@@ -1,7 +1,8 @@
 import { TrackSelection } from "../TrackSelection";
+import * as ss from 'simple-statistics';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { TeamSeriesSchedule } from "../../utils/TeamSeriesSchedule";
+import { TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from "../../utils/TeamSeriesSchedule";
 import { DivSelection } from "../DivSelection";
 import { useTeamSeriesWeekends } from "../../hooks/useSessions";
 import Plot from 'react-plotly.js';
@@ -23,7 +24,7 @@ export const TimeInPitsPlot: React.FC = () => {
 
         return {
             selectedDivisions: selectedDivisions || [],
-            trackName: trackName || TeamSeriesSchedule.getCurrentRoundTrack(),
+            trackName: trackName || TeamSeriesSchedule.getTrackFromRound(TEAM_SERIES_SCHEDULE.getCurrentRound().round - 1),
             season: season ? parseInt(season) : 13,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
@@ -119,7 +120,7 @@ export const TimeInPitsPlot: React.FC = () => {
                             title: 'Time in Pits (seconds)',
                             showgrid: true,
                             gridcolor: 'rgba(255,255,255,0.1)',
-                            range: [50, 120],
+                            range: [ss.median(plotData.map(pd => pd?.y[0] as number ?? 0)) - 10, 120],
                         },
                         plot_bgcolor: 'rgba(0,0,0,0)',
                         paper_bgcolor: '#2c2c2c',

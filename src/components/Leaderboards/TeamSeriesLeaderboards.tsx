@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { TeamSeriesSchedule } from '../../utils/TeamSeriesSchedule';
+import { TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from '../../utils/TeamSeriesSchedule';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
 import { TrackSelection } from '../TrackSelection';
@@ -35,7 +35,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         return {
             afterDate: afterDate || localTwoWeeksAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
-            trackName: trackName || TeamSeriesSchedule.getCurrentRoundTrack(),
+            trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
             selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
             selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4']
