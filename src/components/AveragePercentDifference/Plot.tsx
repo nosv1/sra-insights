@@ -288,6 +288,8 @@ export const APDPlot: React.FC = () => {
                 singleSeason={singleSeasonState}
                 setSingleSeason={setSingleSeason}
             />
+            {loading && <p>Loading...</p>}
+            {error && <p>Error: {error}</p>}
             <div className="plot-container">
                 <Legend sortBy={sortByState} divMinMaxAPDs={divMinMaxAPDs} divMinMaxSlopes={divMinMaxSlopes} divMinMaxVariances={divMinMaxVariances} />
                 <div className="plot">
@@ -317,8 +319,6 @@ export const APDPlot: React.FC = () => {
                     />
                 </div>
             </div>
-            {loading && <p>Loading...</p>}
-            {error && <p>Error: {error}</p>}
         </div>
     );
 }
