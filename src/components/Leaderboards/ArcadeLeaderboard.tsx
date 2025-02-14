@@ -147,7 +147,7 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, incl
             <h2>{data.title}</h2>
             <div className="plot-buttons-container">
                 {numericColumns.map((column, index) => (
-                    <button className="plot-button" key={index} onClick={() => handlePlotButtonClick(column)}>Show {column} Plot</button>
+                    <button className="plot-button" key={index} onClick={() => handlePlotButtonClick(column)}>{showPlot[column] ? 'Hide' : 'Show'} {column} Plot</button>
                 ))}
             </div>
             {numericColumns.map((column, index) => (
