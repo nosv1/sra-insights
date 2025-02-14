@@ -5,14 +5,14 @@ interface SelectionAreaProps {
     selectedDivisions: (number)[];
     uniqueDivisions: (number)[];
     sortByDivisionEnabled: boolean;
-    sortBy: 'apd' | 'slope' | 'variance';
+    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance';
     minNumSessions: number;
     pastNumSessions: number;
     singleSeasonEnabled: boolean;
     singleSeason: number | '';
     setSelectedDivisions: React.Dispatch<React.SetStateAction<(number)[]>>;
     setSortByDivisionEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'variance'>>;
+    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'avg roc' | 'variance'>>;
     setMinNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setPastNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setSeasons: React.Dispatch<React.SetStateAction<number[]>>;
@@ -46,7 +46,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
         }
     }, [singleSeasonEnabled, singleSeason]);
 
-    const handleSortChange = (sortBy: 'apd' | 'slope' | 'variance') => {
+    const handleSortChange = (sortBy: 'apd' | 'slope' | 'avg roc' | 'variance') => {
         setSortBy(sortBy);
     }
 
@@ -109,6 +109,15 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
                         onChange={() => handleSortChange('slope')}
                     />
                     Sort by Slope
+                </label>
+                <label title="Average Rate of Change is the average of the slopes of the APD values. The more negative the average, the faster the driver is showing improvement.">
+                    <input
+                        type="radio"
+                        name="sortOption"
+                        checked={sortBy == 'avg roc'}
+                        onChange={() => handleSortChange('avg roc')}
+                    />
+                    Sort by Avg. RoC
                 </label>
                 <label title="Variance is the spread of APD values. The lower the variance, the more consistent the driver is.">
                     <input
