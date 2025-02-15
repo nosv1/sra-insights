@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
@@ -6,15 +7,15 @@ import { Lap } from '../../types/Lap';
 import { TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from '../../utils/TeamSeriesSchedule';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
+import { ServerSelection } from '../ServerSelection';
 import { TrackSelection } from '../TrackSelection';
 import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
-import { LapAttrSelection, LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
-import { ServerSelection } from '../ServerSelection';
+import { LAP_ATTR_TO_TITLE, LapAttrSelection } from './LeaderboardSelection';
 
 export const TeamSeriesLeaderboards: React.FC = () => {
-    const currentDateTime = new Date();
+    const currentDateTime = moment.tz('America/New_York').utc().toDate();
     const tzOffset = currentDateTime.getTimezoneOffset();
     const dayMilliseconds = 24 * 60 * 60 * 1000;
     const localDateTime = new Date(currentDateTime.getTime() - tzOffset * 60 * 1000);
