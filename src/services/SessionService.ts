@@ -28,8 +28,8 @@ export const fetchCompleteWeekendByKey = async (sessionKey: string): Promise<Wee
     return response.json();
 }
 
-export const fetchTeamSeriesTracksByAttrs = async (season: number): Promise<string[]> => {
-    const queryParams = new URLSearchParams({ season: season.toString() });
+export const fetchTeamSeriesTracksByAttrs = async (season: string, limit: number): Promise<{ track: string, season: number }[]> => {
+    const queryParams = new URLSearchParams({ season: season, limit: limit.toString() });
     const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions/team-series-tracks?${queryParams}`);
     if (!response.ok) throw new Error("Failed to fetch tracks");
     return response.json();

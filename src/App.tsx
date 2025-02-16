@@ -6,6 +6,7 @@ import { DriverPage } from './pages/DriverPage';
 import { TeamSeriesAPDPlotPage } from './pages/TeamSeries/APDPlotPage';
 import { LapTimeInsightsPage } from './pages/TeamSeries/LapTimeInsightsPage';
 import { RaceInsightsPage } from './pages/TeamSeries/RaceInsightsPage';
+import { DivisionPercentDifferences } from './pages/TeamSeries/DivisionPercentDifferences';
 
 const App: React.FC = () => {
   const [isTeamSeriesDropdownOpen, setIsTeamSeriesDropdownOpen] = useState(false);
@@ -38,6 +39,9 @@ const App: React.FC = () => {
                   <li>
                     <Link to="/team-series/apd-plot">Average Percent Difference (APD) Plot</Link>
                   </li>
+                  <li>
+                    <Link to="/team-series/reference-times">Reference Times</Link>
+                  </li>
                 </ul>
               )}
             </div>
@@ -50,6 +54,7 @@ const App: React.FC = () => {
         <Route path="/team-series/lap-time-insights" element={<LapTimeInsightsPage />} />
         <Route path="/team-series/race-insights" element={<RaceInsightsPage />} />
         <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
+        <Route path="/team-series/reference-times" element={<DivisionPercentDifferences />} />
       </Routes>
     </Router>
   );

@@ -131,6 +131,7 @@ export class DriverHistory {
             }
             driverHistories[key].sessionCars.push(driverHistory.sessionCars[0]);
             driverHistories[key].updateTSAvgPercentDiff(carDriver);
+            carDriver.sessionCar.laps?.forEach(lap => driverHistories[key].updateLaps(lap));
         });
 
         return Object.values(driverHistories);
@@ -218,31 +219,40 @@ export class DriverHistory {
         this.apdVariance = ss.variance(this.tsAvgPercentDiffs);
     }
 
+    // everything in this function deals with valid times
     static medianDivisionTimesFromDriverHistories(
         driverHistories: DriverHistory[],
         uniqueDivisions: number[]
     ): {
-        medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } },
+        medianDivisionTimes: { [division: string]: { [lapAttr: string]: number, potentialBest: number } },
         bestTimes: { [lapAttr: string]: number }
     } {
-        const medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } } = {};
+        const medianDivisionTimes: { [division: number]: { [lapAttr: string]: number, potentialBest: number } } = {};
         const bestTimes: { [lapAttr: string]: number } = {};
+
         uniqueDivisions.forEach(division => {
-            const divisionDrivers = driverHistories.filter(dh => dh.basicDriver?.raceDivision === division).filter(dh => dh.bestValidLap);
-            medianDivisionTimes[division] = {};
+            const divIsAlien = division === 0.1;
+            const divisionDrivers = driverHistories.filter(dh => dh.basicDriver?.raceDivision === (divIsAlien ? 1 : division)).filter(dh => dh.bestValidLap);
+            medianDivisionTimes[division] = Object.fromEntries([...LAP_ATTRS.map(lapAttr => [lapAttr, 0]), ['potentialBest', 0]]);
+
+            const potentialBestDivisionTimes: { [driverId: string]: number } = {};
             LAP_ATTRS.forEach(lapAttr => {
                 if (!bestTimes[lapAttr])
                     bestTimes[lapAttr] = Number.MAX_VALUE;
 
-                const bestDivisionTimes: { [key: string]: number } = {};
+                const bestDivisionTimes: { [driverId: string]: number } = {};
                 divisionDrivers.forEach(dh => {
                     const driverId = dh.basicDriver?.driverId ?? '';
                     if (!bestDivisionTimes[driverId]) {
                         bestDivisionTimes[driverId] = Number.MAX_VALUE;
                     }
+                    if (!potentialBestDivisionTimes[driverId]) {
+                        potentialBestDivisionTimes[driverId] = Number.MAX_VALUE;
+                    }
                     let time = 0;
                     if (lapAttr === 'lapTime') {
                         time = dh.bestValidLap?.lapTime ?? 0;
+                        potentialBestDivisionTimes[driverId] = Math.min(potentialBestDivisionTimes[driverId], dh.potentialBestValidLap ?? 0);
                     } else {
                         const bestValidSplitAttr = `bestValid${lapAttr.charAt(0).toUpperCase() + lapAttr.slice(1)}` as keyof DriverHistory;
                         const lap = dh[bestValidSplitAttr] as Lap;
@@ -251,16 +261,28 @@ export class DriverHistory {
                     bestDivisionTimes[driverId] = Math.min(bestDivisionTimes[driverId], time);
                 });
 
-                const bestTimesArray = Object.values(bestDivisionTimes).filter(time => time > 0);
+                let bestTimesArray = Object.values(bestDivisionTimes).filter(time => time > 0);
                 bestTimesArray.sort((a, b) => a - b);
                 bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
 
-                if (bestTimesArray.length === 0) {
+                let potentialBestTimesArray = Object.values(potentialBestDivisionTimes).filter(time => time > 0);
+                potentialBestTimesArray.sort((a, b) => a - b);
+
+                if (bestTimesArray.length === 0 || potentialBestTimesArray.length === 0) {
                     medianDivisionTimes[division][lapAttr] = 0;
+                    medianDivisionTimes[division].potentialBest = 0;
                     return;
                 }
-                const median = ss.median(bestTimesArray);
-                medianDivisionTimes[division][lapAttr] = median;
+
+                if (divIsAlien) {
+                    bestTimesArray = bestTimesArray.slice(0, Math.floor(bestTimesArray.length * 0.1));
+                    potentialBestTimesArray = potentialBestTimesArray.slice(0, Math.floor(potentialBestTimesArray.length * 0.1));
+                }
+
+                const medianBestTime = ss.median(bestTimesArray);
+                const medianPotentialBestTime = ss.median(potentialBestTimesArray);
+                medianDivisionTimes[division][lapAttr] = medianBestTime;
+                medianDivisionTimes[division].potentialBest = medianPotentialBestTime;
             });
         });
 
