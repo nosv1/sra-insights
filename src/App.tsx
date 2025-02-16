@@ -40,7 +40,7 @@ const App: React.FC = () => {
                     <Link to="/team-series/apd-plot">Average Percent Difference (APD) Plot</Link>
                   </li>
                   <li>
-                    <Link to="/team-series/reference-times">Reference Times</Link>
+                    <Link to="/team-series/division-percent-differences">Division Percent Differences</Link>
                   </li>
                 </ul>
               )}
@@ -54,7 +54,7 @@ const App: React.FC = () => {
         <Route path="/team-series/lap-time-insights" element={<LapTimeInsightsPage />} />
         <Route path="/team-series/race-insights" element={<RaceInsightsPage />} />
         <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
-        <Route path="/team-series/reference-times" element={<DivisionPercentDifferences />} />
+        <Route path="/team-series/division-percent-differences" element={<DivisionPercentDifferences />} />
       </Routes>
     </Router>
   );
