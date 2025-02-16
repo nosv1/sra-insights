@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from "../../utils/TeamSeriesSchedule";
 import { DivSelection } from "../DivSelection";
-import { useTeamSeriesWeekends } from "../../hooks/useSessions";
+import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
 import Plot from 'react-plotly.js';
 import { SelectionArea } from "./SelectionArea";
 import { SRADivColor } from "../../utils/SRADivColor";
@@ -36,7 +36,7 @@ export const TimeInPitsPlot: React.FC = () => {
     const [seasonState, setSeason] = useState<number>(params.season);
     const [selectedDivisionsState, setSelectedDivisions] = useState<(number)[]>(params.selectedDivisions);
     const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(params.sortByDivisionEnabled);
-    const { teamSeriesWeekends, loading, error } = useTeamSeriesWeekends(trackNameState, seasonState)
+    const { teamSeriesWeekends, loading, error } = useTeamSeriesWeekendsFromAttrs(trackNameState, seasonState)
 
     const uniqueDivisions = Array.from(
         new Set(
@@ -104,33 +104,35 @@ export const TimeInPitsPlot: React.FC = () => {
             />
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}
-            <div className="plot">
-                <Plot
-                    data={plotData}
-                    layout={{
-                        height: 800,
-                        width: window.innerWidth * 0.98,
-                        title: 'Time in Pits',
-                        xaxis: {
-                            title: 'Driver',
-                            showgrid: true,
-                            gridcolor: 'rgba(255,255,255,0.1)',
-                        },
-                        yaxis: {
-                            title: 'Time in Pits (seconds)',
-                            showgrid: true,
-                            gridcolor: 'rgba(255,255,255,0.1)',
-                            range: [ss.median(plotData.map(pd => pd?.y[0] as number ?? 0)) - 10, 120],
-                        },
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        paper_bgcolor: '#2c2c2c',
-                        font: {
-                            color: '#e0e0e0',
-                        },
-                        hovermode: 'closest',
-                    }}
-                />
-            </div>
+            {plotData.length > 0 &&
+                <div className="plot">
+                    <Plot
+                        data={plotData}
+                        layout={{
+                            height: 800,
+                            width: window.innerWidth * 0.98,
+                            title: 'Time in Pits',
+                            xaxis: {
+                                title: 'Driver',
+                                showgrid: true,
+                                gridcolor: 'rgba(255,255,255,0.1)',
+                            },
+                            yaxis: {
+                                title: 'Time in Pits (seconds)',
+                                showgrid: true,
+                                gridcolor: 'rgba(255,255,255,0.1)',
+                                range: [ss.median(plotData.map(pd => pd?.y[0] as number ?? 0)) - 10, 120],
+                            },
+                            plot_bgcolor: 'rgba(0,0,0,0)',
+                            paper_bgcolor: '#2c2c2c',
+                            font: {
+                                color: '#e0e0e0',
+                            },
+                            hovermode: 'closest',
+                        }}
+                    />
+                </div>
+            }
         </div>
     );
 };
