@@ -256,19 +256,25 @@ app.get('/api/sessions/complete-weekend', async (req, res) => {
 
 app.get('/api/sessions/team-series-tracks', async (req, res) => {
     const season = req.query.season || '';
+    const limit = Number(req.query.limit) || 12;
 
     const result = await runQuery(`
-        MATCH (ts:TeamSeriesSession)-[]->(s:Session)
-        WHERE ts.season = toInteger($season)
-        WITH ts, s
-        ORDER BY s.session_file
-        // RETURN ts, s
-        RETURN DISTINCT s.track_name as track_name`,
+        MATCH (tsr:TeamSeriesRound)-[:TEAM_SERIES_ROUND_TO_TEAM_SERIES_SESSION]->(ts:TeamSeriesSession)
+        MATCH (ts)-[:TEAM_SERIES_SESSION_TO_SESSION]->(s:Session)
+        WHERE $season = '' OR tsr.season = toInteger($season)
+        WITH tsr, s
+        ORDER BY s.session_file DESC
+        // RETURN tsr, s
+        RETURN DISTINCT s.track_name as track_name, tsr.season as season
+        LIMIT toInteger($limit)`,
         `Fetching team series tracks for season ${season}`,
-        { season }
+        { season, limit }
     );
 
-    const tracks = result.records.map(r => r.get('track_name')).filter(t => t != undefined);
+    const tracks = result.records.map(r => ({
+        track: r.get('track_name'),
+        season: r.get('season')
+    })).filter(t => t.track != undefined);
     return res.json(tracks);
 });
 
@@ -282,19 +288,24 @@ app.get('/api/sessions/team-series-races', async (req, res) => {
             AND s.track_name CONTAINS $trackName 
             AND ts.season = toInteger($season) 
             AND s.session_type = 'R'
-        RETURN s
+        RETURN s, ts
         ORDER BY s.track_name ASC, ts.division ASC`,
         `Fetching team series weekends for track ${trackName} in season ${season}`,
         { trackName, season }
     );
 
-    const sessions = result.records.map(r => Session.fromRecord(r)).filter(s => s != undefined);
+    const sessions = result.records.map(r => Session.fromRecord(r, { getTeamSeriesSession: true })).filter(s => s != undefined);
     return res.json(sessions.map(s => s?.toJSON()));
 });
 
 app.get('/api/sessions/team-series-weekends', async (req, res) => {
     const sessions = await fetchTeamSeriesRacesByAttrs(req.query.trackName as string, Number(req.query.season));
-    const completeWeekends = await Promise.all(sessions.map(session => fetchCompleteWeekendByKey(session.key_)));
+    const completeWeekends = await Promise.all(sessions.map(async session => {
+        const weekend = await fetchCompleteWeekendByKey(session.key_);
+        weekend.race.teamSeriesSession = session.teamSeriesSession;
+        weekend.qualifying.teamSeriesSession = session.teamSeriesSession;
+        return weekend;
+    }));
     res.json(completeWeekends);
 });
 
@@ -385,7 +396,8 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
     },
     [`/api/sessions/team-series-tracks`]: {
         params: [
-            { name: 'season', type: 'number' }
+            { name: 'season', type: 'number' },
+            { name: 'limit', type: 'number' }
         ],
         nodes: ["Session", "TeamSeriesSession"],
         returns: 'string[]'
