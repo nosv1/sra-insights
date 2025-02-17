@@ -153,9 +153,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     for (const divStr in medianDivisionTimes) {
                         const div = parseInt(divStr, 10);
                         const medianTime = medianDivisionTimes[div][lapAttr];
-                        const diff = Math.abs(bestValidLapTime - medianTime);
-                        if (diff < smallestDiff) {
-                            smallestDiff = diff;
+                        const percentDiff = Math.abs(bestValidLapTime - medianTime) / medianTime;
+                        if (percentDiff < smallestDiff) {
+                            smallestDiff = percentDiff;
                             closestDiv = div;
                         }
                     }
