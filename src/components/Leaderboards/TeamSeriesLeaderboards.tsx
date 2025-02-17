@@ -58,7 +58,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [filteredLapsState, setFilteredLaps] = useState<Lap[]>([]);
 
     const driverHistories = DriverHistory.fromLaps(filteredLapsState);
-    const { medianDivisionTimes, bestTimes } = DriverHistory.medianDivisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
+    const divisionTimes = DriverHistory.divisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
 
     const lapPercentString = (time: number, percentAsDecimal: number) => {
         const timeString = Lap.timeToString(time);
@@ -106,8 +106,8 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             defaultColumns: [''].concat(uniqueDivisionsState.filter(d => d !== 0).map(d => `D${d}`)),
             rows: selectedLapAttrsState.map(lapAttr => {
                 const cells: Cell[] = [new Cell(LAP_ATTR_TO_TITLE[lapAttr]), ...uniqueDivisionsState.map(d => {
-                    const time = medianDivisionTimes[d][lapAttr];
-                    return new Cell(lapPercentString(time, time / bestTimes[lapAttr]));
+                    const time = divisionTimes.medianDivisionTimes[d][lapAttr];
+                    return new Cell(lapPercentString(time, time / divisionTimes.bestTimes[lapAttr]));
                 })];
                 return new Row(cells);
             })
@@ -119,7 +119,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             <div>
                 {loading && <p>Loading...</p>}
                 {error && <p>Error loading laps: {error}</p>}
-                {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
+                {!loading && !error && (
+                    <p>Number of laps loaded: {laps.length}</p>
+                )}
             </div>
             <div className="selection-area">
                 <DivSelection
@@ -141,7 +143,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             }
             <div className="leaderboards">
                 {selectedLapAttrsState.map(lapAttr => (
-                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} medianDivisionTimes={medianDivisionTimes} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
+                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} divisionTimes={divisionTimes} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
                 ))}
             </div>
             <Footer />
