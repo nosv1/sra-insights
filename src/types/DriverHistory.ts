@@ -204,7 +204,7 @@ export class DriverHistory {
 
         // update rolling median
         if (this.lapsSortedByValidLap.length > 0) {
-            const medianIndex = Math.floor(this.lapsSortedByValidLap.length / 2);
+            const medianIndex = Math.floor((this.lapsSortedByValidLap.length - 1) / 2);
             this.rollingValidMedianLap.push(this.lapsSortedByValidLap[medianIndex]);
             this.rollingValidMedianSplit1.push(this.lapsSortedByValidSplit1[medianIndex]);
             this.rollingValidMedianSplit2.push(this.lapsSortedByValidSplit2[medianIndex]);

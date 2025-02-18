@@ -19,7 +19,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const tzOffset = currentDateTime.getTimezoneOffset();
     const dayMilliseconds = 24 * 60 * 60 * 1000;
     const localDateTime = new Date(currentDateTime.getTime() - tzOffset * 60 * 1000);
-    const localTwoWeeksAgo = new Date(localDateTime.getTime() - 14 * dayMilliseconds);
+    const localOneWeekAgo = new Date(localDateTime.getTime() - 7 * dayMilliseconds);
     const localTomorrow = new Date(localDateTime.getTime() + dayMilliseconds);
 
     const location = useLocation();
@@ -34,7 +34,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
         return {
-            afterDate: afterDate || localTwoWeeksAgo.toISOString().split('T')[0],
+            afterDate: afterDate || localOneWeekAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
             trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
