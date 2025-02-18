@@ -19,7 +19,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const tzOffset = currentDateTime.getTimezoneOffset();
     const dayMilliseconds = 24 * 60 * 60 * 1000;
     const localDateTime = new Date(currentDateTime.getTime() - tzOffset * 60 * 1000);
-    const localTwoWeeksAgo = new Date(localDateTime.getTime() - 14 * dayMilliseconds);
+    const localOneWeekAgo = new Date(localDateTime.getTime() - 7 * dayMilliseconds);
     const localTomorrow = new Date(localDateTime.getTime() + dayMilliseconds);
 
     const location = useLocation();
@@ -34,7 +34,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
         return {
-            afterDate: afterDate || localTwoWeeksAgo.toISOString().split('T')[0],
+            afterDate: afterDate || localOneWeekAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
             trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
@@ -58,7 +58,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [filteredLapsState, setFilteredLaps] = useState<Lap[]>([]);
 
     const driverHistories = DriverHistory.fromLaps(filteredLapsState);
-    const { medianDivisionTimes, bestTimes } = DriverHistory.medianDivisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
+    const divisionTimes = DriverHistory.divisionTimesFromDriverHistories(driverHistories, uniqueDivisionsState);
 
     const lapPercentString = (time: number, percentAsDecimal: number) => {
         const timeString = Lap.timeToString(time);
@@ -106,8 +106,8 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             defaultColumns: [''].concat(uniqueDivisionsState.filter(d => d !== 0).map(d => `D${d}`)),
             rows: selectedLapAttrsState.map(lapAttr => {
                 const cells: Cell[] = [new Cell(LAP_ATTR_TO_TITLE[lapAttr]), ...uniqueDivisionsState.map(d => {
-                    const time = medianDivisionTimes[d][lapAttr];
-                    return new Cell(lapPercentString(time, time / bestTimes[lapAttr]));
+                    const time = divisionTimes.medianDivisionTimes[d][lapAttr];
+                    return new Cell(lapPercentString(time, time / divisionTimes.bestTimes[lapAttr]));
                 })];
                 return new Row(cells);
             })
@@ -119,7 +119,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             <div>
                 {loading && <p>Loading...</p>}
                 {error && <p>Error loading laps: {error}</p>}
-                {!loading && !error && <p>Number of laps loaded: {laps.length}</p>}
+                {!loading && !error && (
+                    <p>Number of laps loaded: {laps.length}</p>
+                )}
             </div>
             <div className="selection-area">
                 <DivSelection
@@ -141,7 +143,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
             }
             <div className="leaderboards">
                 {selectedLapAttrsState.map(lapAttr => (
-                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} medianDivisionTimes={medianDivisionTimes} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
+                    <LapTimeLeaderboard key={lapAttr} driverHistories={driverHistories} divisionTimes={divisionTimes} selectedDivisions={selectedDivisionsState} lapAttr={lapAttr as keyof Lap} />
                 ))}
             </div>
             <Footer />

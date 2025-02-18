@@ -92,23 +92,37 @@ export class DriverHistory {
         return Object.values(driverHistories);
     }
 
-    static fromLaps(laps: Lap[]): DriverHistory[] {
+    static fromLaps(laps: Lap[], bestOnly: boolean = false): DriverHistory[] {
         let driverHistories: { [key: string]: DriverHistory } = {}; // {driver_id_car_model: DriverHistory}
+        let drivers: { [key: string]: DriverHistory } = {}; // {driver_id: DriverHistory}
 
         laps.forEach(lap => {
+            const driver = lap.driver;
+            const car = lap.car;
+            const key = `${driver?.driverId}_${car?.carModel.modelId}`;
+
             const driverHistory = new DriverHistory({
-                basicDriver: lap.driver,
-                sessionCars: lap.car ? [lap.car] : [],
+                basicDriver: driver,
+                sessionCars: car ? [car] : [],
             });
-            const key = `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel.modelId}`;
+
             if (!driverHistories[key]) {
                 driverHistories[key] = driverHistory;
             }
+
+            const driverId = driver?.driverId ?? '';
+            if (!drivers[driverId]) {
+                drivers[driverId] = driverHistory;
+            }
             driverHistories[key].sessionCars.push(driverHistory.sessionCars[0]);
             driverHistories[key].updateLaps(lap);
+
+            if (drivers[driverId].potentialBestValidLap && driverHistory.potentialBestValidLap)
+                if (drivers[driverId].potentialBestValidLap > driverHistory.potentialBestValidLap)
+                    drivers[driverId] = driverHistory;
         });
 
-        return Object.values(driverHistories);
+        return Object.values(bestOnly ? drivers : driverHistories);
     }
 
     static fromCarDrivers(carDrivers: CarDriver[], ignoreCarModel: boolean = false): DriverHistory[] {
@@ -190,7 +204,7 @@ export class DriverHistory {
 
         // update rolling median
         if (this.lapsSortedByValidLap.length > 0) {
-            const medianIndex = Math.floor(this.lapsSortedByValidLap.length / 2);
+            const medianIndex = Math.floor((this.lapsSortedByValidLap.length - 1) / 2);
             this.rollingValidMedianLap.push(this.lapsSortedByValidLap[medianIndex]);
             this.rollingValidMedianSplit1.push(this.lapsSortedByValidSplit1[medianIndex]);
             this.rollingValidMedianSplit2.push(this.lapsSortedByValidSplit2[medianIndex]);
@@ -220,20 +234,23 @@ export class DriverHistory {
     }
 
     // everything in this function deals with valid times
-    static medianDivisionTimesFromDriverHistories(
+    static divisionTimesFromDriverHistories(
         driverHistories: DriverHistory[],
         uniqueDivisions: number[]
     ): {
         medianDivisionTimes: { [division: string]: { [lapAttr: string]: number, potentialBest: number } },
+        averageDivisionTimes: { [division: string]: { [lapAttr: string]: number, potentialBest: number } },
         bestTimes: { [lapAttr: string]: number }
     } {
         const medianDivisionTimes: { [division: number]: { [lapAttr: string]: number, potentialBest: number } } = {};
+        const averageDivisionTimes: { [division: number]: { [lapAttr: string]: number, potentialBest: number } } = {};
         const bestTimes: { [lapAttr: string]: number } = {};
 
         uniqueDivisions.forEach(division => {
             const divIsAlien = division === 0.1;
             const divisionDrivers = driverHistories.filter(dh => dh.basicDriver?.raceDivision === (divIsAlien ? 1 : division)).filter(dh => dh.bestValidLap);
             medianDivisionTimes[division] = Object.fromEntries([...LAP_ATTRS.map(lapAttr => [lapAttr, 0]), ['potentialBest', 0]]);
+            averageDivisionTimes[division] = Object.fromEntries([...LAP_ATTRS.map(lapAttr => [lapAttr, 0]), ['potentialBest', 0]]);
 
             const potentialBestDivisionTimes: { [driverId: string]: number } = {};
             LAP_ATTRS.forEach(lapAttr => {
@@ -270,7 +287,9 @@ export class DriverHistory {
 
                 if (bestTimesArray.length === 0 || potentialBestTimesArray.length === 0) {
                     medianDivisionTimes[division][lapAttr] = 0;
+                    averageDivisionTimes[division][lapAttr] = 0;
                     medianDivisionTimes[division].potentialBest = 0;
+                    averageDivisionTimes[division].potentialBest = 0;
                     return;
                 }
 
@@ -280,13 +299,18 @@ export class DriverHistory {
                 }
 
                 const medianBestTime = ss.median(bestTimesArray);
+                const averageBestTime = ss.mean(bestTimesArray);
                 const medianPotentialBestTime = ss.median(potentialBestTimesArray);
+                const averagePotentialBestTime = ss.mean(potentialBestTimesArray);
+
                 medianDivisionTimes[division][lapAttr] = medianBestTime;
+                averageDivisionTimes[division][lapAttr] = averageBestTime;
                 medianDivisionTimes[division].potentialBest = medianPotentialBestTime;
+                averageDivisionTimes[division].potentialBest = averagePotentialBestTime;
             });
         });
 
-        return { medianDivisionTimes, bestTimes };
+        return { medianDivisionTimes, averageDivisionTimes, bestTimes };
     }
 
     toBasicJSON() {

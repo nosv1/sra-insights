@@ -10,12 +10,16 @@ import { LapsOverTimePlot } from './LapsOverTimePlot';
 
 export interface LapTimeLeaderboardProps {
     driverHistories: DriverHistory[];
-    medianDivisionTimes: { [division: number]: { [lapAttr: string]: number } };
+    divisionTimes: {
+        medianDivisionTimes: { [division: string]: { [lapAttr: string]: number, potentialBest: number } },
+        averageDivisionTimes: { [division: string]: { [lapAttr: string]: number, potentialBest: number } },
+        bestTimes: { [lapAttr: string]: number }
+    };
     selectedDivisions: number[];
     lapAttr: keyof Lap;
 };
 
-export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHistories, medianDivisionTimes, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
+export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHistories, divisionTimes: divisionTimes, selectedDivisions, lapAttr }: LapTimeLeaderboardProps) => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
 
     let potentialValidP1 = Number.MAX_SAFE_INTEGER;
@@ -150,9 +154,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     const bestValidLapTime = bestValid[lapAttr] as number;
                     let smallestDiff = Number.MAX_SAFE_INTEGER;
 
-                    for (const divStr in medianDivisionTimes) {
+                    for (const divStr in divisionTimes.medianDivisionTimes) {
                         const div = parseInt(divStr, 10);
-                        const medianTime = medianDivisionTimes[div][lapAttr];
+                        const medianTime = divisionTimes.medianDivisionTimes[div][lapAttr];
                         const percentDiff = Math.abs(bestValidLapTime - medianTime) / medianTime;
                         if (percentDiff < smallestDiff) {
                             smallestDiff = percentDiff;

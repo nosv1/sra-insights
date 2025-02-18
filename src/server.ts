@@ -2,13 +2,17 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import neo4j from 'neo4j-driver';
+import { LAP_ATTRS } from './components/Leaderboards/LeaderboardSelection';
+import { fetchLapsByAttrs } from './services/LapService';
 import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchTeamSeriesRacesByAttrs, fetchWeekendByKey } from './services/SessionService';
 import { BasicDriver } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
+import { DriverHistory } from './types/DriverHistory';
 import { Lap } from './types/Lap';
 import { Season } from './types/Season';
 import { Session } from './types/Session';
 import { Weekend } from './types/Weekend';
+import { TEAM_SERIES_SCHEDULE, TeamSeriesRound } from './utils/TeamSeriesSchedule';
 
 const app = express();
 const port = process.env.PORT || 5000; // You can change this
@@ -324,6 +328,52 @@ app.get('/api/seasons/points-reference', async (req, res) => {
     res.json(seasons.map(season => season.toJSON()));
 });
 
+//////////      Misc      //////////
+app.get('/api/misc/division-times', async (req, res) => {
+    const divisionTimesPerRound = await Promise.all(
+        TEAM_SERIES_SCHEDULE.rounds.map(async (round: TeamSeriesRound) => {
+            const laps = await fetchLapsByAttrs({
+                afterDate: new Date(round.date.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                beforeDate: round.date.toISOString().split('T')[0],
+                trackName: round.trackName,
+                carGroups: []
+            });
+            const driverHistories = DriverHistory.fromLaps(laps, true);
+            const divisionTimes = DriverHistory.divisionTimesFromDriverHistories(driverHistories, [1, 2, 3, 4, 5, 6])
+            const medianDivisionTimes = divisionTimes.medianDivisionTimes;
+            const averageDivisionTimes = divisionTimes.averageDivisionTimes;
+            const bestTimes = divisionTimes.bestTimes;
+            return { round, medianDivisionTimes, averageDivisionTimes, bestTimes };
+        })
+    );
+    const csvHeaders = [
+        'track_name',
+        'division',
+        ...LAP_ATTRS.map(attr => `median_${attr}`),
+        'median_potentialBest',
+        ...LAP_ATTRS.map(attr => `average_${attr}`),
+        'average_potentialBest',
+    ];
+    const csvRows = divisionTimesPerRound.map(({ round, medianDivisionTimes, averageDivisionTimes }) => {
+        return Object.entries(medianDivisionTimes).map(([division, medianTimes]) => {
+            const averageTimes = averageDivisionTimes[division];
+            return [
+                round.trackName,
+                division,
+                ...LAP_ATTRS.map(attr => medianTimes[attr]),
+                medianTimes.potentialBest,
+                ...LAP_ATTRS.map(attr => averageTimes[attr]),
+                averageTimes.potentialBest,
+            ].join(',');
+        });
+    }).flat();
+
+    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+    res.header('Content-Type', 'text/csv');
+    res.attachment('division_times.csv');
+    res.send(csvContent);
+});
+
 const apiRoutes: { [key: string]: { params: { name: string, type: string }[], nodes: string[], returns: string, note?: string } } = {
     [`/api/car-drivers/complete`]: {
         params: [],
@@ -424,6 +474,11 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
         ],
         nodes: ["TeamSeriesSeason", "TeamSeriesPointsReference"],
         returns: 'Season[]'
+    [`/api/misc/division-times`]: {
+        params: [],
+        nodes: ["TeamSeriesRound", "Session", "Driver", "Car", "CarDriver", "Lap"],
+        returns: 'string',
+        note: 'CSV download'
     }
 };
 
