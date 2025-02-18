@@ -57,9 +57,9 @@ export const DivisionPercentDifferences: React.FC = () => {
             [div, div === 1 ? 0.1 : null].forEach((div) => {
                 if (div === null) return;
 
-                const medianDivisionTimes = DriverHistory.medianDivisionTimesFromDriverHistories(driverHistories, [div]);
-                Object.keys(medianDivisionTimes.medianDivisionTimes).forEach(division => {
-                    divMediansByWeekend[getWeekendKey(weekend)][division] = medianDivisionTimes.medianDivisionTimes[division].potentialBest;
+                const divisionTimes = DriverHistory.divisionTimesFromDriverHistories(driverHistories, [div]);
+                Object.keys(divisionTimes.medianDivisionTimes).forEach(division => {
+                    divMediansByWeekend[getWeekendKey(weekend)][division] = divisionTimes.medianDivisionTimes[division].potentialBest;
                 });
             });
         });
