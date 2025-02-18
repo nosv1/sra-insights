@@ -474,6 +474,7 @@ const apiRoutes: { [key: string]: { params: { name: string, type: string }[], no
         ],
         nodes: ["TeamSeriesSeason", "TeamSeriesPointsReference"],
         returns: 'Season[]'
+    },
     [`/api/misc/division-times`]: {
         params: [],
         nodes: ["TeamSeriesRound", "Session", "Driver", "Car", "CarDriver", "Lap"],
