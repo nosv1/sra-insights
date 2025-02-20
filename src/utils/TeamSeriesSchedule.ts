@@ -30,11 +30,11 @@ export class TeamSeriesSchedule {
     };
 
     static getTrackFromRound(round: number): string {
-        return TEAM_SERIES_SCHEDULE.rounds[round - 1].trackName;
+        return S13_TEAM_SERIES_SCHEDULE.rounds[round - 1].trackName;
     };
 }
 
-export const TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
+export const S13_TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
     new TeamSeriesRound(1, 'suzuka', moment.tz('2024-12-12', 'America/New_York').toDate()),
     new TeamSeriesRound(2, 'watkins_glen', moment.tz('2024-12-19', 'America/New_York').toDate()),
