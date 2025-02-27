@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { DivSelection } from '../DivSelection';
+import { BasicDriver } from '../../types/BasicDriver';
+import { DriverSearch } from '../DriverSearch';
 
 interface SelectionAreaProps {
     selectedDivisions: (number)[];
@@ -10,6 +12,7 @@ interface SelectionAreaProps {
     pastNumSessions: number;
     singleSeasonEnabled: boolean;
     singleSeason: number | '';
+    basicDrivers: BasicDriver[];
     setSelectedDivisions: React.Dispatch<React.SetStateAction<(number)[]>>;
     setSortByDivisionEnabled: React.Dispatch<React.SetStateAction<boolean>>;
     setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'avg roc' | 'variance'>>;
@@ -18,6 +21,8 @@ interface SelectionAreaProps {
     setSeasons: React.Dispatch<React.SetStateAction<number[]>>;
     setSingleSeasonEnabled: React.Dispatch<React.SetStateAction<boolean>>;
     setSingleSeason: React.Dispatch<React.SetStateAction<number | ''>>;
+    setSelectedDriver: React.Dispatch<React.SetStateAction<BasicDriver | null>>;
+    onDriverSelect: (basicDriver: BasicDriver) => void;
 }
 
 export const SelectionArea: React.FC<SelectionAreaProps> = ({
@@ -29,6 +34,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
     pastNumSessions,
     singleSeasonEnabled,
     singleSeason,
+    basicDrivers,
     setSelectedDivisions,
     setSortByDivisionEnabled,
     setSortBy,
@@ -36,7 +42,9 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
     setPastNumSessions,
     setSeasons,
     setSingleSeasonEnabled,
-    setSingleSeason
+    setSingleSeason,
+    setSelectedDriver,
+    onDriverSelect,
 }) => {
     useEffect(() => {
         if (singleSeasonEnabled && singleSeason) {
@@ -173,6 +181,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
                     )}
                 </div>
             </div>
+            <DriverSearch onDriverSelect={onDriverSelect} basicDrivers={basicDrivers} setSelectedDriver={setSelectedDriver} />
         </div>
     );
 };

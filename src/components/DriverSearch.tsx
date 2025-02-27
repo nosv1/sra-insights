@@ -5,17 +5,14 @@ import { BasicDriver } from "../types/BasicDriver";
 interface DriverSearchProps {
     onDriverSelect: (basicDriver: BasicDriver) => void;
     basicDrivers: BasicDriver[];
-    basicDriversLoading: boolean;
-    initialDriverId?: string | null;
-    selectedDriver?: BasicDriver | null;
+    setSelectedDriver: (driver: BasicDriver | null) => void;
 }
 
-export const DriverSearch: React.FC<DriverSearchProps> = ({ onDriverSelect, basicDrivers, basicDriversLoading, initialDriverId: initialDriverId, selectedDriver }) => {
+export const DriverSearch: React.FC<DriverSearchProps> = ({ onDriverSelect, basicDrivers, setSelectedDriver }) => {
     const [searchValue, setSearchValue] = useState<string>("");
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-    const [currentDriverId, setCurrentDriverId] = useState<string | null>(initialDriverId ?? null);
+    const [currentDriverId, setCurrentDriverId] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const navigate = useNavigate();
 
     // Set initial driver based on provided ID
     useEffect(() => {
@@ -26,16 +23,9 @@ export const DriverSearch: React.FC<DriverSearchProps> = ({ onDriverSelect, basi
                 return;
             }
             setSearchValue(existingDriver.name);
-            selectedDriver = existingDriver;
+            setSelectedDriver(existingDriver);
         }
-    }, [basicDrivers, currentDriverId]);
-
-    // Update search value when selectedDriver changes
-    useEffect(() => {
-        if (selectedDriver) {
-            setSearchValue(selectedDriver.name);
-        }
-    }, [selectedDriver]);
+    }, [basicDrivers, currentDriverId, setSelectedDriver]);
 
     // Handle driver selection
     const handleSelect = (basicDriver: BasicDriver) => {
@@ -43,9 +33,7 @@ export const DriverSearch: React.FC<DriverSearchProps> = ({ onDriverSelect, basi
         setShowSuggestions(false);
         onDriverSelect(basicDriver);
         setCurrentDriverId(basicDriver.driverId);
-        navigate({
-            search: `?driverId=${basicDriver.driverId}`
-        });
+        setSelectedDriver(basicDriver);
     };
 
     // Render suggestions list
@@ -77,17 +65,14 @@ export const DriverSearch: React.FC<DriverSearchProps> = ({ onDriverSelect, basi
                 className="driver-search"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder={basicDriversLoading ? "Loading driver names..." : "Search for a driver..."}
+                placeholder="Search for a driver..."
                 onFocus={() => {
                     setShowSuggestions(true);
                     inputRef.current?.select();
                 }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-                disabled={basicDriversLoading}
             />
-            {showSuggestions && <ul>{renderSuggestions()}</ul>}
+            {showSuggestions && <ul className="driver-suggestions">{renderSuggestions()}</ul>}
         </div>
     );
 };
-
-

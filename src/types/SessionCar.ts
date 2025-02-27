@@ -9,6 +9,7 @@ export class SessionCar {
     carModel: CarModel;
     carGroup: string;
     carNumber: number;
+    cupCategory: string; // 0 is gold, 3 is silver (im assuming)
     finishPosition: number;
     totalTime: number; // this is probably time in control of car, excluding when RTG or car is locked from control (still includes pit time)
     timeInPits: number;
@@ -53,6 +54,7 @@ export class SessionCar {
         this.carModel = data.carModel ?? new CarModel();
         this.carGroup = data.carGroup ?? '';
         this.carNumber = data.carNumber ?? 0;
+        this.cupCategory = data.cupCategory ?? '';
         this.finishPosition = data.finishPosition ?? 0;
         this.totalTime = data.totalTime ?? 0;
         this.timeInPits = data.timeInPits ?? 0;
@@ -74,6 +76,7 @@ export class SessionCar {
             carModel: CarModel.fromModelId(node.properties['car_model']),
             carGroup: node.properties['car_group'],
             carNumber: node.properties['car_number'],
+            cupCategory: node.properties['cup_category'],
             finishPosition: node.properties['finish_position'],
             totalTime: node.properties['total_time'],
             timeInPits: node.properties['time_in_pits'],
@@ -183,6 +186,7 @@ export class SessionCar {
             carModel: this.carModel.toBasicJSON(),
             carGroup: this.carGroup,
             carNumber: this.carNumber,
+            cupCategory: this.cupCategory,
             finishPosition: this.finishPosition,
             totalTime: this.totalTime,
             timeInPits: this.timeInPits,
@@ -212,6 +216,7 @@ export class SessionCar {
             gapToLeaderPerSplit: this.gapToLeaderPerSplit,
             probablePitLaps: this.probablePitLaps,
             stints: this.stints.map(stint => stint.toBasicJSON()),
+            sumSplits: this.sumSplits,
         }
     }
 
