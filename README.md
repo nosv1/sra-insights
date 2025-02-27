@@ -10,13 +10,18 @@
     * [X] per lap & splits
     * [ ] avg best lap
     * [ ] plots
-  * [ ] per lap & splits
+  * [X] per lap & splits
   * [ ] avg best lap
 * [ ] race insights
   * [ ] pits
-    * [x] time in pits plot
+  * [X] time in pits plot
+  * [x] gap to leader plot
   * [ ] strategy
     * [ ] correlate pit lap and positions gained after pit stops
 * [ ] Average Percent Difference (APD)
   * [X] plot /team-series/apd-plot
   * [ ] be able to use in other plots
+* [ ] season recap
+  * [x] drivers per race
+  * [ ] team attendenace
+  * [ ] laps per round

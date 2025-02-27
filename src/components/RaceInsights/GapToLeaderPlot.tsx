@@ -1,16 +1,13 @@
-import { TrackSelection } from "../TrackSelection";
-import * as ss from 'simple-statistics';
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { S13_TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from "../../utils/TeamSeriesSchedule";
-import { DivSelection } from "../DivSelection";
-import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
 import Plot from 'react-plotly.js';
-import { SelectionArea } from "./SelectionArea";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
+import { Lap } from "../../types/Lap";
 import { SRADivColor } from "../../utils/SRADivColor";
-import { driver } from "neo4j-driver";
+import { S13_TEAM_SERIES_SCHEDULE, TeamSeriesSchedule } from "../../utils/TeamSeriesSchedule";
+import { SelectionArea } from "./SelectionArea";
 
-export const TimeInPitsPlot: React.FC = () => {
+export const GapToLeaderPlot: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -67,29 +64,96 @@ export const TimeInPitsPlot: React.FC = () => {
         .flatMap(tsw => tsw.race.carDrivers)
         .filter(cd => selectedDivisionsState.includes(cd?.basicDriver?.raceDivision || 0));
 
-    carDrivers.sort((a, b) => (a ? a.timeInPits || 0 : 0) - (b ? b.timeInPits || 0 : 0));
+    carDrivers.sort((a, b) => (a ? a.sessionCar?.finishPosition || 0 : 0) - (b ? b.sessionCar?.finishPosition || 0 : 0));
 
     if (sortByDivisionEnabledState)
         carDrivers.sort((a, b) => (a ? a.basicDriver?.raceDivision || 0 : 0) - (b ? b.basicDriver?.raceDivision || 0 : 0));
 
-    const plotData = carDrivers.map(carDriver => {
+    const startingColors = [
+        { r: 255, g: 204, b: 0 },  // Highlight color
+        { r: 255, g: 77, b: 77 },  // Button color
+        { r: 224, g: 224, b: 224 },  // Text color
+        { r: 0, g: 122, b: 204 },  // blue
+        { r: 0, g: 204, b: 102 },  // green
+    ];
+
+    const plotData: Array<{
+        x: number[] | undefined,
+        y: number[] | undefined,
+        type: string,
+        name: string | undefined,
+        text?: string[] | undefined,
+        marker: {
+            color?: string,
+            size?: number,
+            line?: {
+                color: string,
+                width: number,
+            } | undefined,
+        } | undefined,
+    }> = [];
+
+    carDrivers.forEach((carDriver, cd_idx) => {
         if (!carDriver) return;
-        const divisionColor = SRADivColor.fromDivision(carDriver?.basicDriver?.raceDivision ?? 0);
+
+        const x: number[] = [];
+        const y: number[] = [];
+        const text: string[] = [];
+        carDriver.sessionCar?.gapToLeaderPerSplit.forEach((gap, g_idx) => {
+            if (!carDriver.sessionCar) return;
+            const lap = g_idx / 3;
+            const gapToLeader = Math.max(gap / 1000.0, 0);
+            const totalTime = carDriver?.sessionCar?.splitRunningTime[carDriver.sessionCar?.splitRunningTime.length - 1] || 0;
+            const currentTime = carDriver?.sessionCar?.splitRunningTime[g_idx] || 0;
+            const timeLeftInRace = Lap.timeToString((totalTime - currentTime));
+
+            x.push(lap);
+            y.push(gapToLeader);
+            text.push(
+                `${carDriver.basicDriver?.name}<br>`
+                + `Time Left: ${timeLeftInRace}<br>`
+            );
+        });
+
+        const baseColor = startingColors[cd_idx % startingColors.length];
+        const divisionColor = new SRADivColor(baseColor.r, baseColor.g, baseColor.b);
         const driverColor = (carDriver?.basicDriver?.isSilver ? divisionColor.applySilverTint() : divisionColor).darken();
-        return {
-            x: [carDriver.basicDriver?.name],
-            y: [carDriver.timeInPits / 1000.0],
-            type: 'bar',
-            name: carDriver?.basicDriver?.name,
+        plotData.push({
+            x: x,
+            y: y,
+            type: 'markers+lines',
+            name: `#${carDriver.sessionCar?.finishPosition} | ${carDriver?.basicDriver?.name}`,
+            text: text,
             marker: {
                 color: driverColor.toRgba(),
-                line: {
-                    color: driverColor.brighten(0.25).toRgba(),
-                    width: 0.5,
-                },
             },
-        }
+        });
+        carDriver.sessionCar?.probablePitLaps.forEach((lap, l_idx) => {
+            if (!carDriver.sessionCar || !lap) return;
+            plotData.push({
+                x: [((lap - 1) * 3 - 1) / 3],
+                y: [carDriver.sessionCar?.gapToLeaderPerSplit[(lap - 1) * 3 - 1] / 1000.0],
+                type: 'markers',
+                name: `#${carDriver.sessionCar?.finishPosition} | Pit Lap ${lap}`,
+                text: [text[(lap - 1) * 3 - 1] + `Pit Lap #${l_idx + 1}`],
+                marker: {
+                    color: plotData[plotData.length - 1].marker?.color,
+                    size: 10,
+                },
+            });
+        });
     });
+
+
+
+    // fig.update_xaxes(
+    //     tickmode="array",
+    //     tickvals=list(range(len(race_drivers[0].gap_to_leader_per_split))),
+    //     ticktext=[
+    //         f"{i/3 + 1:.1f}"
+    //         for i in range(len(race_drivers[0].gap_to_leader_per_split))
+    //     ],
+    // )
 
     return (
         <div>
@@ -111,17 +175,18 @@ export const TimeInPitsPlot: React.FC = () => {
                         layout={{
                             height: 800,
                             width: window.innerWidth * 0.98,
-                            title: 'Time in Pits',
+                            title: 'Gap to Leader',
                             xaxis: {
-                                title: 'Driver',
+                                title: 'Lap',
                                 showgrid: true,
                                 gridcolor: 'rgba(255,255,255,0.1)',
                             },
                             yaxis: {
-                                title: 'Time in Pits (seconds)',
+                                title: 'Gap to Leader (seconds)',
                                 showgrid: true,
                                 gridcolor: 'rgba(255,255,255,0.1)',
-                                range: [ss.median(plotData.map(pd => pd?.y[0] as number ?? 0)) - 10, 120],
+                                // range: [ss.median(plotData.map(pd => pd?.y[0] as number ?? 0)) - 10, 120],
+                                autorange: "reversed",
                             },
                             plot_bgcolor: 'rgba(0,0,0,0)',
                             paper_bgcolor: '#2c2c2c',
