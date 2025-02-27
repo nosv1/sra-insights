@@ -5,6 +5,7 @@ import { useTeamSeriesCarDrivers } from '../../hooks/useCarDrivers';
 import { SRADivColor } from '../../utils/SRADivColor';
 import { SelectionArea } from './SelectionArea';
 import { DriverHistory } from '../../types/DriverHistory';
+import { BasicDriver } from '../../types/BasicDriver';
 
 const Legend: React.FC<{
     sortBy: 'apd' | 'slope' | 'avg roc' | 'variance',
@@ -102,6 +103,7 @@ export const APDPlot: React.FC = () => {
     const [sortByState, setSortBy] = useState<'apd' | 'avg roc' | 'slope' | 'variance'>(params.sortBy);
     const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(params.singleSeasonEnabled);
     const [singleSeasonState, setSingleSeason] = useState<number | ''>(params.singleSeason);
+    const [selectedDriver, setSelectedDriver] = useState<BasicDriver | null>(null);
 
     useEffect(() => {
         if (location.search === '')
@@ -209,6 +211,7 @@ export const APDPlot: React.FC = () => {
 
     let plotData = filteredCarDrivers.map((driverHistory, gd_idx) => {
         const driver = driverHistory.basicDriver;
+        const isSelected = selectedDriver?.driverId === driver?.driverId;
         const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
         const slopeColor = divisionColor.brighten(
             (1 - (driverHistory.apdSlope - divMinMax[driver?.raceDivision ?? 0].slope.min)
@@ -254,8 +257,8 @@ export const APDPlot: React.FC = () => {
             marker: {
                 color: barColor.toRgba(),
                 line: {
-                    color: barColor.toRgba(),
-                    width: 0,
+                    color: isSelected ? 'rgba(255, 255, 0, 1)' : barColor.toRgba(),
+                    width: isSelected ? 2 : 0,
                 },
             },
             text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
@@ -311,6 +314,7 @@ export const APDPlot: React.FC = () => {
                 sortBy={sortByState}
                 minNumSessions={minNumSessionsState}
                 pastNumSessions={pastNumSessionsState}
+                basicDrivers={driverHistories.map(dh => dh.basicDriver).filter(bd => bd !== null) as BasicDriver[]}
                 setSelectedDivisions={setSelectedDivisions}
                 setSortByDivisionEnabled={setSortByDivisionEnabled}
                 setSortBy={setSortBy}
@@ -321,6 +325,8 @@ export const APDPlot: React.FC = () => {
                 setSingleSeasonEnabled={setSingleSeasonEnabled}
                 singleSeason={singleSeasonState}
                 setSingleSeason={setSingleSeason}
+                setSelectedDriver={setSelectedDriver}
+                onDriverSelect={(basicDriver) => setSelectedDriver(basicDriver)}
             />
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}

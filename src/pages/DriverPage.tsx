@@ -32,13 +32,10 @@ export const DriverPage: React.FC = () => {
         <div>
             <Header />
             <h2>Driver Stats</h2>
-            <DriverSearch
+            {/* <DriverSearch
                 onDriverSelect={handleDriverSelect}
                 basicDrivers={basicDrivers}
-                basicDriversLoading={loading}
-                initialDriverId={initialDriverId}
-                selectedDriver={selectedDriver}
-            />
+            /> */}
             {selectedDriver && <p className="selected-driver">Selected Driver: {selectedDriver.name} {selectedDriver.driverId}</p>}
             {selectedDriver ? <pre>{JSON.stringify(selectedDriver, null, 2)}</pre> : ''}
             <Footer />
