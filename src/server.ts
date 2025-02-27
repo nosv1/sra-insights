@@ -12,7 +12,7 @@ import { Lap } from './types/Lap';
 import { Season } from './types/Season';
 import { Session } from './types/Session';
 import { Weekend } from './types/Weekend';
-import { TEAM_SERIES_SCHEDULE, TeamSeriesRound } from './utils/TeamSeriesSchedule';
+import { S13_TEAM_SERIES_SCHEDULE, TeamSeriesRound } from './utils/TeamSeriesSchedule';
 
 const app = express();
 const port = process.env.PORT || 5000; // You can change this
