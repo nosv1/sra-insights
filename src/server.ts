@@ -159,7 +159,7 @@ app.get('/api/laps', async (req, res) => {
         WHERE TRUE
             AND s.finish_time >= datetime($afterDate)
             AND s.finish_time < datetime($beforeDate)
-            AND s.track_name CONTAINS $trackName
+            AND s.track_name = $trackName
             AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
             AND (size($sessionTypes) = 0 OR s.session_type IN $sessionTypes)
             AND (size($sessionKeys) = 0 OR s.key_ IN $sessionKeys)
