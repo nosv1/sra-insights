@@ -3,6 +3,7 @@ import * as ss from 'simple-statistics';
 import { LAP_ATTRS } from "../components/Leaderboards/LeaderboardSelection";
 import { BasicDriver } from './BasicDriver';
 import { CarDriver } from './CarDriver';
+import { HotStint } from './HotStint';
 import { Lap } from './Lap';
 import { Session } from './Session';
 import { SessionCar } from './SessionCar';
@@ -25,6 +26,8 @@ export class DriverHistory {
     bestValidSplit1?: Lap;
     bestValidSplit2?: Lap;
     bestValidSplit3?: Lap;
+
+    bestHotStint?: HotStint;
 
     rollingValidMedianLap: number[] = []; // index of lap in lapsSortedByValidLap
     rollingValidMedianSplit1: number[] = [];
@@ -200,6 +203,22 @@ export class DriverHistory {
         }
         if (!this.bestSplit3 || lap.split3 < this.bestSplit3.split3) {
             this.bestSplit3 = lap;
+        }
+
+        // update best hot stint
+        if (this.validLaps.length >= 5) {
+            const lastFiveValidLaps = this.validLaps.slice(-5);
+            const areConsecutive = lastFiveValidLaps.every((lap, index, arr) => {
+                if (index === 0) return true;
+                return lap.lapNumber === arr[index - 1].lapNumber + 1;
+            });
+
+            if (areConsecutive) {
+                const hotStint = HotStint.fromLaps(lastFiveValidLaps);
+                if (!this.bestHotStint || hotStint.averageLapTime < this.bestHotStint.averageLapTime) {
+                    this.bestHotStint = hotStint;
+                }
+            }
         }
 
         // update rolling median
