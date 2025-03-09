@@ -32,7 +32,7 @@ export const Header: React.FC = () => {
                         onMouseLeave={() => setHoveredSession(null)}
                     >
                         <a href={session.sraSessionURL} target="_blank" rel="noreferrer">
-                            SRAM{session.serverNumber} - {session.sessionType} - {session.trackName.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())} | {session.timeAgo}
+                            {session.serverTitle} - {session.sessionType} - {session.trackName.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())} | {session.timeAgo}
                         </a>
                         {hoveredSession === session && (
                             <div className="tooltip">

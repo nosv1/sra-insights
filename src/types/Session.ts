@@ -9,15 +9,27 @@ export class Session {
     sessionType: string;
     finishTime: Date;
     sessionFile: string;
-    serverNumber: number;
+    server: string;
     serverName: string;
 
     teamSeriesSession?: TeamSeriesSession;
     carDrivers?: CarDriver[];
 
+    get serverTitle(): string {
+        if (new Array('1', '2', '3', '4', '5', '6', '7').includes(this.server)) {
+            return `SRAM${this.server}`;
+        } else {
+            return this.server;
+        }
+    }
+
+    get serverURLName(): string {
+        return (this.server.length === 1 ? `server` : '') + this.server;
+    }
+
     get sraSessionURL(): string {
         // https://www.simracingalliance.com/results/server3/race/250129_192518_FP
-        return `https://www.simracingalliance.com/results/server${this.serverNumber}/` +
+        return `https://www.simracingalliance.com/results/${this.serverURLName}/` +
             this.sessionTypeSraWord + '/' +
             this.sessionFile;
     }
@@ -51,7 +63,7 @@ export class Session {
         this.sessionType = data.sessionType ?? '';
         this.finishTime = data.finishTime ?? new Date();
         this.sessionFile = data.sessionFile ?? '';
-        this.serverNumber = data.serverNumber ?? 0;
+        this.server = data.server ?? '';
         this.serverName = data.serverName ?? '';
     }
 
@@ -68,7 +80,7 @@ export class Session {
                 'America/New_York'
             ).utc().toDate(),
             sessionFile: node.properties['session_file'],
-            serverNumber: parseInt(node.properties['server_number']),
+            server: node.properties['server_number'],
             serverName: node.properties['server_name'],
         });
     }
@@ -167,7 +179,9 @@ export class Session {
             finishTime: this.finishTime,
             timeAgo: this.timeAgo,
             sessionFile: this.sessionFile,
-            serverNumber: this.serverNumber,
+            serverTitle: this.serverTitle,
+            serverURLName: this.serverURLName,
+            server: this.server,
             serverName: this.serverName,
             sraSessionURL: this.sraSessionURL,
             sessionTypeSraWord: this.sessionTypeSraWord,

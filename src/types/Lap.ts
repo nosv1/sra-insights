@@ -20,7 +20,7 @@ export class Lap {
     split3: number;
     isValidForBest: boolean;
     runningSessionLapCount: number;
-    serverNumber: number;
+    serverNumber: string;
     sessionFile: string;
 
     car?: SessionCar;
@@ -47,7 +47,7 @@ export class Lap {
         this.split3 = data.split3 ?? 0;
         this.isValidForBest = data.isValidForBest ?? false;
         this.runningSessionLapCount = data.runningSessionLapCount ?? 0;
-        this.serverNumber = data.serverNumber ?? 0;
+        this.serverNumber = data.serverNumber ?? '';
         this.sessionFile = data.sessionFile ?? '';
     }
 
@@ -63,7 +63,7 @@ export class Lap {
             split3: node.properties['split3'],
             isValidForBest: node.properties['is_valid_for_best'],
             runningSessionLapCount: node.properties['running_session_lap_count'],
-            serverNumber: parseInt(node.properties['server_number']),
+            serverNumber: node.properties['server_number'],
             sessionFile: node.properties['session_file']
         });
     }
