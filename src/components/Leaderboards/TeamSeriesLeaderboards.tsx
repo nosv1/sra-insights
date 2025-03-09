@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { S13_TEAM_SERIES_SCHEDULE } from '../../utils/TeamSeriesSchedule';
+import { S13_TEAM_SERIES_SCHEDULE, S14_QUALIFYING } from '../../utils/TeamSeriesSchedule';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
 import { ServerSelection } from '../ServerSelection';
@@ -34,9 +34,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
         return {
-            afterDate: afterDate || localOneWeekAgo.toISOString().split('T')[0],
+            afterDate: afterDate || S14_QUALIFYING.date.toISOString().split('T')[0] || localOneWeekAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
-            trackName: trackName || S13_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
+            trackName: trackName || S14_QUALIFYING.trackName || S13_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
             selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
             selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4']
@@ -90,9 +90,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         if (!laps || laps.length === 0)
             return;
 
-        const serverToNumber = (server: string) => parseInt(server.replace('SRAM', ''));
-        const serverNumbers = (servers: string[]) => servers.map(serverToNumber);
-        setFilteredLaps(laps.filter(l => serverNumbers(selectedServersState).includes(l.serverNumber)));
+        setFilteredLaps(laps.filter(l => selectedServersState.includes(l.serverNumber) || true));
 
         setUniqueDivisions(Array
             .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
@@ -120,7 +118,10 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 {loading && <p>Loading...</p>}
                 {error && <p>Error loading laps: {error}</p>}
                 {!loading && !error && (
-                    <p>Number of laps loaded: {laps.length}</p>
+                    <div>
+                        <p>Number of laps loaded: {laps.length}</p>
+                        <p>Displaying Season 13's divisions!</p>
+                    </div>
                 )}
             </div>
             <div className="selection-area">
@@ -134,7 +135,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                     <TrackSelection trackName={params.trackName} onTrackSelect={setTrackName} />
                 </div>
                 <LapAttrSelection selectedLapAttrs={selectedLapAttrsState} setSelectedLapAttrs={setSelectedLapAttrs} />
-                <ServerSelection selectedServers={selectedServersState} setSelectedServers={setSelectedServers} uniqueServers={uniqueServersState} />
+                {/* <ServerSelection selectedServers={selectedServersState} setSelectedServers={setSelectedServers} uniqueServers={uniqueServersState} /> */}
             </div>
             {medianDivisionTimesData &&
                 <div className="arcade-leaderboard-container">

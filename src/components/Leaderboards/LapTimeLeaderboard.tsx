@@ -26,6 +26,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
     let bestValidP1 = Number.MAX_SAFE_INTEGER;
     let potentialP1 = Number.MAX_SAFE_INTEGER;
     let bestP1 = Number.MAX_SAFE_INTEGER;
+    let bestHotStintP1 = Number.MAX_SAFE_INTEGER;
 
     driverHistories.sort((a, b) => {
         const compareSplits = (a: DriverHistory, b: DriverHistory, lapAttr: 'split1' | 'split2' | 'split3') => {
@@ -60,6 +61,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
         };
 
         if (lapAttr === 'lapTime') {
+            if (a.bestHotStint && b.bestHotStint) {
+                bestHotStintP1 = Math.min(bestHotStintP1, a.bestHotStint.averageLapTime, b.bestHotStint.averageLapTime);
+            }
             if (a.potentialBestValidLap && b.potentialBestValidLap) {
                 potentialValidP1 = Math.min(potentialValidP1, a.potentialBestValidLap, b.potentialBestValidLap);
                 bestValidP1 = Math.min(
@@ -134,6 +138,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                 'Best Valid',
                 'Potential',
                 'Best',
+                'Hot Stint',
                 'Closest Div Median',
             ]
             : [ // Split Leaderboard
@@ -143,7 +148,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                 'Best',
                 'Closest Div Median',
             ],
-        defaultColumns: lapAttr === 'lapTime' ? ['Div | Driver', 'Potential Valid', 'Best Valid'] : ['Div | Driver', 'Best Valid'],
+        defaultColumns: lapAttr === 'lapTime' ? ['Div | Driver', 'Potential Valid', 'Best Valid', 'Hot Stint'] : ['Div | Driver', 'Best Valid'],
         rows: driverHistories
             .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0) && dh.bestValidLap)
             .map(dh => {
@@ -176,7 +181,9 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                                 {`${dh.basicDriver?.division.toFixed(1)} | ${dh.basicDriver?.name}`}
                             </a>
                             {hoveredDriver === dh.basicDriver && <DriverHover driver={hoveredDriver} />}
-                        </div>
+                        </div>,
+                        dh.basicDriver?.name,
+                        dh.basicDriver?.name
                     ),
 
                     'Car': new Cell(dh.sessionCars[0].carModel.name),
@@ -225,6 +232,17 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                         `Split 2: ${Lap.timeToString(best?.split2 ?? 0)}\n` +
                         `Split 3: ${Lap.timeToString(best?.split3 ?? 0)}\n` +
                         `Set ${dh.bestLap?.session?.timeAgo}`
+                    ),
+
+                    'Hot Stint': new Cell(
+                        <a href={lapLink(dh.bestHotStint?.laps[0])} target="_blank" rel="noreferrer">
+                            {lapPercentString(
+                                dh.bestHotStint?.averageLapTime ?? 0,
+                                (dh.bestHotStint?.averageLapTime ?? 0) / bestHotStintP1)
+                            }
+                        </a>,
+                        dh.bestHotStint?.laps.map(lap => `L${lap.lapNumber}: ${Lap.timeToString(lap.lapTime)}`).join('\n'),
+                        dh.bestHotStint?.totalTime ?? Number.MAX_SAFE_INTEGER
                     ),
 
                     'Closest Div Median': new Cell(

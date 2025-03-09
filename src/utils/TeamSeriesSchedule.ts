@@ -45,3 +45,5 @@ export const S13_TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
     new TeamSeriesRound(7, 'oulton_park', moment.tz('2025-02-13', 'America/New_York').toDate()),
     new TeamSeriesRound(8, 'valencia', moment.tz('2025-02-20', 'America/New_York').toDate())
 ]);
+
+export const S14_QUALIFYING = new TeamSeriesRound(1, 'imola', moment.tz('2025-03-02', 'America/New_York').toDate());

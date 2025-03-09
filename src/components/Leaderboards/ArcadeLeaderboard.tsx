@@ -128,14 +128,10 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, incl
         if (!sortColumn) return 0;
         const columnIndex = data.columns.indexOf(sortColumn);
 
-        const stringA = getStringValue(a.row[columnIndex].displayValue);
-        const stringB = getStringValue(b.row[columnIndex].displayValue);
+        const aValue = a.row[columnIndex].sortValue;
+        const bValue = b.row[columnIndex].sortValue;
 
-        const floatA = parseFloat(stringA);
-        const floatB = parseFloat(stringB);
-
-        const aValue = floatA ? (floatA === 1 ? stringA : floatA) : stringA;
-        const bValue = floatB ? (floatB === 1 ? stringB : floatB) : stringB;
+        if (aValue === null || bValue === null) return 0;
 
         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
