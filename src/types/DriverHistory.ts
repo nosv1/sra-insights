@@ -233,21 +233,28 @@ export class DriverHistory {
     }
 
     updateTSAvgPercentDiff(carDriver: CarDriver) {
-        if (!carDriver.sessionCar || !carDriver.sessionCar.tsAvgPercentDiff)
+        if (!carDriver.sessionCar || (!carDriver.sessionCar.tsAvgPercentDiff && !carDriver.sessionCar.tsQualiAvgPercentDiff)) {
             return;
+        }
 
-        if (carDriver.session)
-            this.sessions?.push(carDriver.session);
+        if (carDriver.session) {
+            this.sessions.push(carDriver.session);
+        }
 
-        if (carDriver.sessionCar.avgPercentDiff)
-            this.avgPercentDiffs.push(carDriver.sessionCar.avgPercentDiff);
+        const avgPercentDiff = carDriver.sessionCar.avgPercentDiff ?? carDriver.sessionCar.qualiAvgPercentDiff;
+        const tsAvgPercentDiff = carDriver.sessionCar.tsAvgPercentDiff ?? carDriver.sessionCar.tsQualiAvgPercentDiff;
 
-        this.tsAvgPercentDiffs.push(carDriver.sessionCar.tsAvgPercentDiff);
-        this.tsAvgPercentDiff = this.tsAvgPercentDiffs.reduce((sum, diff) => sum + diff, 0) / this.tsAvgPercentDiffs.length;
+        if (avgPercentDiff !== null && tsAvgPercentDiff !== null) {
+            this.avgPercentDiffs.push(avgPercentDiff);
+            this.tsAvgPercentDiffs.push(tsAvgPercentDiff);
+        }
 
-        const linearRegression = ss.linearRegression(this.sessions.map((s, s_idx) => [s_idx, this.tsAvgPercentDiffs[s_idx]]));
+        this.tsAvgPercentDiff = ss.mean(this.tsAvgPercentDiffs);
+
+        const linearRegression = ss.linearRegression(this.sessions.map((_, idx) => [idx, this.tsAvgPercentDiffs[idx]]));
         this.apdSlope = -linearRegression.m;
-        let rocs = this.tsAvgPercentDiffs.map((diff, idx) => idx > 0 ? this.tsAvgPercentDiffs[idx - 1] - diff : 0).filter(diff => diff !== 0);
+
+        const rocs = this.tsAvgPercentDiffs.slice(1).map((diff, idx) => this.tsAvgPercentDiffs[idx] - diff);
         this.avgAPD_ROC = rocs.length > 0 ? ss.mean(rocs) : 0;
         this.apdVariance = ss.variance(this.tsAvgPercentDiffs);
     }

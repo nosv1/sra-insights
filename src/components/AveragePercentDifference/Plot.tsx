@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useTeamSeriesCarDrivers } from '../../hooks/useCarDrivers';
-import { SRADivColor } from '../../utils/SRADivColor';
-import { SelectionArea } from './SelectionArea';
-import { DriverHistory } from '../../types/DriverHistory';
 import { BasicDriver } from '../../types/BasicDriver';
+import { DriverHistory } from '../../types/DriverHistory';
+import { SRADivColor } from '../../utils/SRADivColor';
 
 const Legend: React.FC<{
     sortBy: 'apd' | 'slope' | 'avg roc' | 'variance',
@@ -59,81 +55,28 @@ const Legend: React.FC<{
     );
 };
 
-export const APDPlot: React.FC = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
+export interface APDProps {
+    title: string;
+    driverHistories: DriverHistory[];
+    uniqueDivisions: number[];
+    selectedDivisionsState: number[];
+    divisionsEnabledState: boolean;
+    minNumSessionsState: number;
+    sortByState: 'apd' | 'slope' | 'avg roc' | 'variance';
+    sortByDivisionEnabledState: boolean;
+    selectedDriver: BasicDriver | null;
+}
 
-    const getParams = () => {
-        const params = new URLSearchParams(location.search);
-        const minNumSessions = Number(params.get('minNumSessions'));
-        const pastNumSessions = Number(params.get('pastNumSessions'));
-        let seasonParams = params.get('seasons')?.split(',').map(Number) || [];
-        let selectedDivisions = params.get('selectedDivisions')?.split(',').map(Number) || [];
-        const sortByDivisionEnabled = params.get('sortByDivisionEnabled') === 'true';
-        const sortBy = params.get('sortBy') as 'apd' | 'slope' | 'variance';
-
-        seasonParams = seasonParams[0] == 0 ? [] : seasonParams
-        selectedDivisions = selectedDivisions[0] == 0 ? [] : selectedDivisions
-
-        const singleSeasonEnabled = seasonParams.length === 1;
-
-        return {
-            minNumSessions: minNumSessions || 3,
-            pastNumSessions: pastNumSessions || 5,
-            seasons: seasonParams,
-            selectedDivisions: selectedDivisions || [],
-            sortByDivisionEnabled: sortByDivisionEnabled,
-            sortBy: sortBy || 'apd',
-            singleSeasonEnabled: singleSeasonEnabled,
-            singleSeason: seasonParams[0] || 13,
-        }
-    };
-
-    let params = getParams();
-
-    const trackNames: string[] = []
-    const divisions: number[] = []
-    const sessionTypes = ['R']
-
-    const [minNumSessionsState, setMinNumSessions] = useState<number>(params.minNumSessions);
-    const [pastNumSessionsState, setPastNumSessions] = useState<number>(params.pastNumSessions);
-    const [seasonsState, setSeasons] = useState<number[]>(params.seasons);
-    const [selectedDivisionsState, setSelectedDivisions] = useState<number[]>(params.selectedDivisions);
-    const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(params.sortByDivisionEnabled);
-    const [sortByState, setSortBy] = useState<'apd' | 'avg roc' | 'slope' | 'variance'>(params.sortBy);
-    const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(params.singleSeasonEnabled);
-    const [singleSeasonState, setSingleSeason] = useState<number | ''>(params.singleSeason);
-    const [selectedDriver, setSelectedDriver] = useState<BasicDriver | null>(null);
-
-    useEffect(() => {
-        if (location.search === '')
-            return;
-        const params = getParams();
-        setMinNumSessions(params.minNumSessions);
-        setPastNumSessions(params.pastNumSessions);
-        setSeasons(params.seasons);
-        setSelectedDivisions(params.selectedDivisions);
-        setSortByDivisionEnabled(params.sortByDivisionEnabled);
-        setSortBy(params.sortBy);
-        setSingleSeasonEnabled(params.singleSeasonEnabled);
-        setSingleSeason(params.singleSeason);
-    }, [location.search]);
-
-    useEffect(() => {
-        const params = new URLSearchParams();
-        params.set('minNumSessions', minNumSessionsState.toString());
-        params.set('pastNumSessions', pastNumSessionsState.toString());
-        params.set('seasons', seasonsState.join(','));
-        params.set('selectedDivisions', selectedDivisionsState.join(','));
-        params.set('sortByDivisionEnabled', sortByDivisionEnabledState.toString());
-        params.set('sortBy', sortByState);
-        navigate({ search: params.toString() });
-    }, [minNumSessionsState, pastNumSessionsState, seasonsState, selectedDivisionsState, sortByDivisionEnabledState, sortByState]);
-
-    const { carDrivers, loading, error } = useTeamSeriesCarDrivers(trackNames, divisions, seasonsState, sessionTypes, pastNumSessionsState);
-
-    const uniqueDivisions = Array.from(new Set(carDrivers.map(cd => cd.basicDriver?.raceDivision ?? 0)));
-    const driverHistories = DriverHistory.fromCarDrivers(carDrivers, true);
+export const APDPlot: React.FC<APDProps> = ({
+    title,
+    driverHistories,
+    uniqueDivisions,
+    selectedDivisionsState,
+    minNumSessionsState,
+    sortByState,
+    sortByDivisionEnabledState,
+    selectedDriver
+}) => {
 
     const filteredCarDrivers = driverHistories
         .filter(driverHistory => (selectedDivisionsState.includes(driverHistory.basicDriver?.raceDivision ?? 0)
@@ -266,11 +209,13 @@ export const APDPlot: React.FC = () => {
                 + `Avg Rate of Change: ${(driverHistory.avgAPD_ROC * 100).toFixed(3)}%<br>`
                 + `Variance: ${(driverHistory.apdVariance * 100).toFixed(5)}%<br>`
                 + driverHistory.sessions
-                    .map((s, s_idx) => `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
-                        + `Car APD: ${(driverHistory.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
-                        + `Div APD: ${(s.teamSeriesSession?.avgPercentDiff !== undefined ? (s.teamSeriesSession.avgPercentDiff * 100).toFixed(3) : 'N/A')}%   |   `
-                        + `TS APD: ${(driverHistory.tsAvgPercentDiffs[s_idx] * 100).toFixed(3)}%`
-                    )
+                    .map((s, s_idx) => {
+                        const tsAvgPercentDiff = s.teamSeriesSession?.avgPercentDiff ?? s.teamSeriesSession?.qualiAvgPercentDiff;
+                        return `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
+                            + `Car APD: ${(driverHistory.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
+                            + `Div APD: ${(isFinite(tsAvgPercentDiff ?? NaN) ? ((tsAvgPercentDiff ?? 0) * 100).toFixed(3) : 'N/A')}%   |   `
+                            + `TS APD: ${(driverHistory.tsAvgPercentDiffs[s_idx] * 100).toFixed(3)}%`
+                    })
                     .join('<br>'),
         };
     });
@@ -306,63 +251,38 @@ export const APDPlot: React.FC = () => {
     }
 
     return (
-        <div>
-            <SelectionArea
-                uniqueDivisions={uniqueDivisions}
-                selectedDivisions={selectedDivisionsState}
-                sortByDivisionEnabled={sortByDivisionEnabledState}
-                sortBy={sortByState}
-                minNumSessions={minNumSessionsState}
-                pastNumSessions={pastNumSessionsState}
-                basicDrivers={driverHistories.map(dh => dh.basicDriver).filter(bd => bd !== null) as BasicDriver[]}
-                setSelectedDivisions={setSelectedDivisions}
-                setSortByDivisionEnabled={setSortByDivisionEnabled}
-                setSortBy={setSortBy}
-                setMinNumSessions={setMinNumSessions}
-                setPastNumSessions={setPastNumSessions}
-                setSeasons={setSeasons}
-                singleSeasonEnabled={singleSeasonEnabledState}
-                setSingleSeasonEnabled={setSingleSeasonEnabled}
-                singleSeason={singleSeasonState}
-                setSingleSeason={setSingleSeason}
-                setSelectedDriver={setSelectedDriver}
-                onDriverSelect={(basicDriver) => setSelectedDriver(basicDriver)}
-            />
-            {loading && <p>Loading...</p>}
-            {error && <p>Error: {error}</p>}
-            <div className="plot-container">
-                <Legend sortBy={sortByState} divMinMax={divMinMax} />
-                <div className="plot">
-                    <Plot
-                        data={plotData}
-                        layout={{
-                            height: 800,
-                            width: window.innerWidth * 0.98,
-                            title: `Average Percent Differences - ${plotData.length} Drivers`,
-                            xaxis: {
-                                title: 'Driver',
-                                showgrid: true,
-                                gridcolor: 'rgba(255,255,255,0.1)',
-                            },
-                            yaxis: {
-                                title: (
-                                    sortByState == 'slope' ? 'Slope'
-                                        : sortByState == 'variance' ? 'Variance'
-                                            : sortByState == 'avg roc' ? 'Avg ROC'
-                                                : 'APD'
-                                ),
-                                showgrid: true,
-                                gridcolor: 'rgba(255,255,255,0.1)',
-                            },
-                            plot_bgcolor: 'rgba(0,0,0,0)',
-                            paper_bgcolor: '#2c2c2c',
-                            font: {
-                                color: '#e0e0e0',
-                            },
-                            hovermode: 'closest',
-                        }}
-                    />
-                </div>
+        <div className="plot-container">
+            <Legend sortBy={sortByState} divMinMax={divMinMax} />
+            <div className="plot">
+                <Plot
+                    data={plotData}
+                    layout={{
+                        height: 800,
+                        width: window.innerWidth * 0.98,
+                        title: `${title} - ${plotData.length} Drivers`,
+                        xaxis: {
+                            title: 'Driver',
+                            showgrid: true,
+                            gridcolor: 'rgba(255,255,255,0.1)',
+                        },
+                        yaxis: {
+                            title: (
+                                sortByState == 'slope' ? 'Slope'
+                                    : sortByState == 'variance' ? 'Variance'
+                                        : sortByState == 'avg roc' ? 'Avg ROC'
+                                            : 'APD'
+                            ),
+                            showgrid: true,
+                            gridcolor: 'rgba(255,255,255,0.1)',
+                        },
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        paper_bgcolor: '#2c2c2c',
+                        font: {
+                            color: '#e0e0e0',
+                        },
+                        hovermode: 'closest',
+                    }}
+                />
             </div>
         </div>
     );
