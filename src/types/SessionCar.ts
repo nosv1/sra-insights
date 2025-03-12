@@ -32,6 +32,8 @@ export class SessionCar {
     // not present in every car node
     avgPercentDiff: number | null = null;
     tsAvgPercentDiff: number | null = null;
+    qualiAvgPercentDiff: number | null = null;
+    tsQualiAvgPercentDiff: number | null = null;
 
     laps: Lap[] = [];
 
@@ -67,6 +69,8 @@ export class SessionCar {
         // not present in every car node
         this.avgPercentDiff = data.avgPercentDiff ?? null;
         this.tsAvgPercentDiff = data.tsAvgPercentDiff ?? null;
+        this.qualiAvgPercentDiff = data.qualiAvgPercentDiff ?? null;
+        this.tsQualiAvgPercentDiff = data.tsQualiAvgPercentDiff ?? null;
     }
 
     static fromNode(node: Node): SessionCar {
@@ -89,6 +93,8 @@ export class SessionCar {
             // not present in every car node
             avgPercentDiff: node.properties?.['avg_percent_diff'] ?? null,
             tsAvgPercentDiff: node.properties?.['ts_avg_percent_diff'] ?? null,
+            qualiAvgPercentDiff: node.properties?.['quali_avg_percent_diff'] ?? null,
+            tsQualiAvgPercentDiff: node.properties?.['ts_quali_avg_percent_diff']
         });
     }
 
@@ -207,6 +213,8 @@ export class SessionCar {
             // not present in every car node
             avgPercentDiff: this.avgPercentDiff,
             tsAvgPercentDiff: this.tsAvgPercentDiff,
+            qualiAvgPercentDiff: this.qualiAvgPercentDiff,
+            tsQualiAvgPercentDiff: this.tsQualiAvgPercentDiff,
 
             laps: this.laps.map(lap => lap.toBasicJSON()),
             startOffset: this.startOffset,
