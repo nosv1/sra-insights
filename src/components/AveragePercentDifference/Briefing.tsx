@@ -11,7 +11,7 @@ export const Briefing: React.FC = () => {
                 </span>
             </p>
             <p><b>
-                The steps to calculate APD are as follows:
+                The steps to calculate race APD are as follows:
             </b></p>
             <ul>
                 <li>Per race, per driver:</li>
@@ -68,6 +68,10 @@ export const Briefing: React.FC = () => {
                     Now, each division has an APD, and each driver has an APD. These APDs are combined per driver for each race. All that's left is to decide how many recent races we want to consider, then average a driver's APD over <i>n</i> races and compare drivers' potential race pace to each other.
                 </b></p>
             </ul>
+
+            <p><b>The steps to calcuate qualifying APD are as follows:</b></p>
+
+            <p>It's literally the same except instead of using a drivers' average lap time (within the middle 50%), their potential best valid qualifying laps are used.</p><br></br>
 
             <span className="note">
                 Other notes:
