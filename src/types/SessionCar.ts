@@ -50,6 +50,10 @@ export class SessionCar {
         return this.laps?.reduce((acc, lap) => acc + lap.splits.reduce((acc, split) => acc + split, 0), 0) ?? 0;
     }
 
+    get tsDivClass() {
+        return this.cupCategory === '0' ? 'Gold' : 'Silver';
+    }
+
     constructor(data: Partial<SessionCar> = {}) {
         this.key_ = data.key_ ?? '';
         this.carId = data.carId ?? 0;
@@ -80,7 +84,7 @@ export class SessionCar {
             carModel: CarModel.fromModelId(node.properties['car_model']),
             carGroup: node.properties['car_group'],
             carNumber: node.properties['car_number'],
-            cupCategory: node.properties['cup_category'],
+            cupCategory: node.properties['cup_category'].toString(),
             finishPosition: node.properties['finish_position'],
             totalTime: node.properties['total_time'],
             timeInPits: node.properties['time_in_pits'],
@@ -225,6 +229,7 @@ export class SessionCar {
             probablePitLaps: this.probablePitLaps,
             stints: this.stints.map(stint => stint.toBasicJSON()),
             sumSplits: this.sumSplits,
+            tsDivClass: this.tsDivClass,
         }
     }
 
