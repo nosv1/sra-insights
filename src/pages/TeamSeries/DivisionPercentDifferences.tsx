@@ -16,7 +16,8 @@ export const DivisionPercentDifferences: React.FC = () => {
 
     const teamSeriesWeekendsByWeekendKey: { [weekendKey: string]: Weekend } = {};
     teamSeriesWeekends.forEach((weekend) => {
-        if (weekend.race.teamSeriesSession?.avgPercentDiff === 0) {
+        // when this is null, undefined, or 0 the race might have had wet conditions in one of the divs
+        if (!weekend.race.teamSeriesSession?.avgPercentDiff) {
             return;
         }
         teamSeriesWeekendsByWeekendKey[getWeekendKey(weekend)] = weekend;
@@ -29,7 +30,10 @@ export const DivisionPercentDifferences: React.FC = () => {
         const weekendKey = getWeekendKey(weekend);
         if (!teamSeriesWeekendsByWeekendKey[weekendKey])
             return;
-        const driverHistories = DriverHistory.fromCarDrivers([...weekend.qualifying.carDrivers ?? [], ...weekend.race.carDrivers ?? []])
+        const driverHistories = DriverHistory.fromCarDrivers([
+            ...weekend.qualifying.carDrivers ?? [],
+            ...weekend.race.carDrivers ?? []
+        ])
         const div = weekend.race.teamSeriesSession?.division;
         if (!div)
             return;
