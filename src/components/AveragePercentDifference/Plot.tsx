@@ -210,10 +210,11 @@ export const APDPlot: React.FC<APDProps> = ({
                 + `Variance: ${(driverHistory.apdVariance * 100).toFixed(5)}%<br>`
                 + driverHistory.sessions
                     .map((s, s_idx) => {
+                        const isQuali = s.sessionType === 'Q';
                         const tsAvgPercentDiff = s.teamSeriesSession?.avgPercentDiff ?? s.teamSeriesSession?.qualiAvgPercentDiff;
                         return `Season ${s.teamSeriesSession?.season} Division ${s.teamSeriesSession?.division} @ ${s.trackName}   |   `
                             + `Car APD: ${(driverHistory.avgPercentDiffs[s_idx] * 100).toFixed(3)}%   |   `
-                            + `Div APD: ${(isFinite(tsAvgPercentDiff ?? NaN) ? ((tsAvgPercentDiff ?? 0) * 100).toFixed(3) : 'N/A')}%   |   `
+                            + `${isQuali ? driverHistory.sessionCars[s_idx].tsDivClass : 'Div'} APD: ${(isFinite(tsAvgPercentDiff ?? NaN) ? ((tsAvgPercentDiff ?? 0) * 100).toFixed(3) : 'N/A')}%   |   `
                             + `TS APD: ${(driverHistory.tsAvgPercentDiffs[s_idx] * 100).toFixed(3)}%`
                     })
                     .join('<br>'),
