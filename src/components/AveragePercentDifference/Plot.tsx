@@ -1,6 +1,7 @@
 import Plot from 'react-plotly.js';
 import { BasicDriver } from '../../types/BasicDriver';
 import { DriverHistory } from '../../types/DriverHistory';
+import { downloadCSV } from '../../utils/Data';
 import { SRADivColor } from '../../utils/SRADivColor';
 
 const Legend: React.FC<{
@@ -54,6 +55,13 @@ const Legend: React.FC<{
         </div>
     );
 };
+
+const plotDataToCSV = (plotData: any[]) => {
+    const csvData = plotData.map(pd => {
+        return pd.x[0] + ',' + pd.y[0];
+    });
+    return csvData.join('\n');
+}
 
 export interface APDProps {
     title: string;
@@ -285,6 +293,9 @@ export const APDPlot: React.FC<APDProps> = ({
                     }}
                 />
             </div>
+            <button onClick={() => downloadCSV(plotDataToCSV(plotData), 'plot_data.csv')} className="plot-button">
+                Download CSV
+            </button>
         </div>
     );
 }

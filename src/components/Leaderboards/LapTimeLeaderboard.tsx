@@ -174,7 +174,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                     'Div | Driver': new Cell(
                         <div className="driver-hover-dropdown" onMouseEnter={() => setHoveredDriver(dh.basicDriver)} onMouseLeave={() => setHoveredDriver(undefined)}>
                             <a
-                                href={dh.basicDriver?.sraMemberStatsURL}
+                                href={dh.basicDriver?.sraInsightsURL}
                                 target="_blank"
                                 rel="noreferrer"
                             >
