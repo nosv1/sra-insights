@@ -1,6 +1,7 @@
 import Plot from 'react-plotly.js';
 import { BasicDriver } from '../../types/BasicDriver';
 import { DriverHistory } from '../../types/DriverHistory';
+import { downloadCSV } from '../../utils/Data';
 import { SRADivColor } from '../../utils/SRADivColor';
 
 const Legend: React.FC<{
