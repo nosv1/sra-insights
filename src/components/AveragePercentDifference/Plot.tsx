@@ -55,6 +55,13 @@ const Legend: React.FC<{
     );
 };
 
+const plotDataToCSV = (plotData: any[]) => {
+    const csvData = plotData.map(pd => {
+        return pd.x[0] + ',' + pd.y[0];
+    });
+    return csvData.join('\n');
+}
+
 export interface APDProps {
     title: string;
     driverHistories: DriverHistory[];
@@ -285,6 +292,9 @@ export const APDPlot: React.FC<APDProps> = ({
                     }}
                 />
             </div>
+            <button onClick={() => downloadCSV(plotDataToCSV(plotData), 'plot_data.csv')} className="plot-button">
+                Download CSV
+            </button>
         </div>
     );
 }
