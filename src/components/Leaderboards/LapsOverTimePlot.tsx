@@ -96,7 +96,9 @@ export const LapsOverTimePlot: React.FC<LapsOverTimePlotProps> = ({ driverHistor
                 data={plotData}
                 layout={{
                     height: 400,
-                    title: `${driverHistory.basicDriver?.name}'s ${driverHistory.laps.length} Laps`,
+                    title: ``
+                        + `${driverHistory.basicDriver?.name} - ${driverHistory.laps.length} Laps<br>`
+                        + `${driverHistory.sessionCars[0].carModel.name} `,
                     xaxis: {
                         title: 'Lap Number',
                         showgrid: true,
