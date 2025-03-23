@@ -45,8 +45,8 @@ export const Briefing: React.FC = () => {
                     <li>Calculate the percent difference of a driver's average middle-50% time divided by every other driver's middle 50% time in the same division.</li>
                     <ul>
                         <li><span className="math-example">Percent Difference = (Driver's Middle 50% Time / Other Driver's Middle 50% Time) - 1</span></li>
-                        <li><span className="math-example">91 / 90 = 1.011 - 1 = +0.11</span></li>
-                        <li><span className="math-example">89 / 90 = 0.988 - 1 = -0.11</span></li>
+                        <li><span className="math-example">91 / 90 = 1.011 - 1 = +0.011</span></li>
+                        <li><span className="math-example">89 / 90 = 0.988 - 1 = -0.011</span></li>
                     </ul>
                     <li>Average the percent differences per driver to get an APD that is comparable to every driver in the same race.</li>
                 </ol>
