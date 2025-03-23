@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { S13_TEAM_SERIES_SCHEDULE, S14_QUALIFYING } from '../../utils/TeamSeriesSchedule';
+import { INDY_QUALIFYING, S13_TEAM_SERIES_SCHEDULE, S14_QUALIFYING } from '../../utils/TeamSeriesSchedule';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
 import { ServerSelection } from '../ServerSelection';
@@ -34,9 +34,9 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
         return {
-            afterDate: afterDate || S14_QUALIFYING.date.toISOString().split('T')[0] || localOneWeekAgo.toISOString().split('T')[0],
+            afterDate: afterDate || INDY_QUALIFYING.date.toISOString().split('T')[0] || localOneWeekAgo.toISOString().split('T')[0],
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
-            trackName: trackName || S14_QUALIFYING.trackName || S13_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
+            trackName: trackName || INDY_QUALIFYING.trackName || S13_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
             selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
             selectedServers: selectedServers ? selectedServers?.split(',') : ['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4']
