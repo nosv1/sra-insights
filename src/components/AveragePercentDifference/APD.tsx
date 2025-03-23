@@ -17,7 +17,7 @@ export const APDPlots: React.FC = () => {
         let seasonParams = params.get('seasons')?.split(',').map(Number) || [];
         let selectedDivisions = params.get('selectedDivisions')?.split(',').map(Number) || [];
         const sortByDivisionEnabled = params.get('sortByDivisionEnabled') === 'true';
-        const sortBy = params.get('sortBy') as 'apd' | 'slope' | 'variance';
+        const sortBy = params.get('sortBy') as 'apd' | 'slope' | 'variance' | 'apd median';
 
         seasonParams = seasonParams[0] == 0 ? [] : seasonParams
         selectedDivisions = selectedDivisions[0] == 0 ? [] : selectedDivisions
@@ -46,7 +46,7 @@ export const APDPlots: React.FC = () => {
     const [seasonsState, setSeasons] = useState<number[]>(params.seasons);
     const [selectedDivisionsState, setSelectedDivisions] = useState<number[]>(params.selectedDivisions);
     const [sortByDivisionEnabledState, setSortByDivisionEnabled] = useState<boolean>(params.sortByDivisionEnabled);
-    const [sortByState, setSortBy] = useState<'apd' | 'avg roc' | 'slope' | 'variance'>(params.sortBy);
+    const [sortByState, setSortBy] = useState<'apd' | 'avg roc' | 'slope' | 'variance' | 'apd median'>(params.sortBy);
     const [singleSeasonEnabledState, setSingleSeasonEnabled] = useState<boolean>(params.singleSeasonEnabled);
     const [singleSeasonState, setSingleSeason] = useState<number | ''>(params.singleSeason);
     const [selectedDriver, setSelectedDriver] = useState<BasicDriver | null>(null);

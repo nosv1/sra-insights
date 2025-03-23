@@ -7,7 +7,7 @@ interface SelectionAreaProps {
     selectedDivisions: (number)[];
     uniqueDivisions: (number)[];
     sortByDivisionEnabled: boolean;
-    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance';
+    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance' | 'apd median';
     minNumSessions: number;
     pastNumSessions: number;
     singleSeasonEnabled: boolean;
@@ -15,7 +15,7 @@ interface SelectionAreaProps {
     basicDrivers: BasicDriver[];
     setSelectedDivisions: React.Dispatch<React.SetStateAction<(number)[]>>;
     setSortByDivisionEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'avg roc' | 'variance'>>;
+    setSortBy: React.Dispatch<React.SetStateAction<'apd' | 'slope' | 'avg roc' | 'variance' | 'apd median'>>;
     setMinNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setPastNumSessions: React.Dispatch<React.SetStateAction<number>>;
     setSeasons: React.Dispatch<React.SetStateAction<number[]>>;
@@ -54,7 +54,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
         }
     }, [singleSeasonEnabled, singleSeason]);
 
-    const handleSortChange = (sortBy: 'apd' | 'slope' | 'avg roc' | 'variance') => {
+    const handleSortChange = (sortBy: 'apd' | 'slope' | 'avg roc' | 'variance' | 'apd median') => {
         setSortBy(sortBy);
     }
 
@@ -135,6 +135,15 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
                         onChange={() => handleSortChange('variance')}
                     />
                     Sort by Variance
+                </label>
+                <label title="Outiler is calculated by a driver's APD value minus the division's median APD value. The more negative the value, the more the driver is an outlier.">
+                    <input
+                        type="radio"
+                        name="sortOption"
+                        checked={sortBy == 'apd median'}
+                        onChange={() => handleSortChange('apd median')}
+                    />
+                    Sort by APD Outliers
                 </label>
             </div>
             <div className="session-count-controls">

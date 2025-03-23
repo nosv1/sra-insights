@@ -5,7 +5,7 @@ import { downloadCSV } from '../../utils/Data';
 import { SRADivColor } from '../../utils/SRADivColor';
 
 const Legend: React.FC<{
-    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance',
+    sortBy: 'apd' | 'slope' | 'avg roc' | 'variance' | 'apd median';
     divMinMax: {
         [division: number]: {
             APD: { min: number, max: number },
@@ -70,7 +70,7 @@ export interface APDProps {
     selectedDivisionsState: number[];
     divisionsEnabledState: boolean;
     minNumSessionsState: number;
-    sortByState: 'apd' | 'slope' | 'avg roc' | 'variance';
+    sortByState: 'apd' | 'slope' | 'avg roc' | 'variance' | 'apd median';
     sortByDivisionEnabledState: boolean;
     selectedDriver: BasicDriver | null;
 }
@@ -94,10 +94,10 @@ export const APDPlot: React.FC<APDProps> = ({
     let divDrivers: { [key: number]: { [key: string]: any } } = {}; // { div: { driverId: { ... } }
     let divMinMax: {
         [key: number]: {
-            APD: { min: number, max: number },
-            slope: { min: number, max: number },
-            variance: { min: number, max: number },
-            avgAPD_ROC: { min: number, max: number }
+            APD: { min: number, max: number, median: number, values: number[] },
+            slope: { min: number, max: number, median: number, values: number[] },
+            variance: { min: number, max: number, median: number, values: number[] },
+            avgAPD_ROC: { min: number, max: number, median: number, values: number[] }
         }
     } = {};
 
@@ -117,38 +117,66 @@ export const APDPlot: React.FC<APDProps> = ({
 
         if (!divMinMax[division]) {
             divMinMax[division] = {
-                APD: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
-                slope: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
-                variance: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
-                avgAPD_ROC: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
+                APD: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY, median: Number.POSITIVE_INFINITY, values: [] },
+                slope: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY, median: Number.POSITIVE_INFINITY, values: [] },
+                variance: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY, median: Number.POSITIVE_INFINITY, values: [] },
+                avgAPD_ROC: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY, median: Number.POSITIVE_INFINITY, values: [] }
             };
         }
 
         divMinMax[division].APD.min = Math.min(divMinMax[division].APD.min, driverHistory.tsAvgPercentDiff);
         divMinMax[division].APD.max = Math.max(divMinMax[division].APD.max, driverHistory.tsAvgPercentDiff);
+        divMinMax[division].APD.values.push(driverHistory.tsAvgPercentDiff);
+
         divMinMax[division].slope.min = Math.min(divMinMax[division].slope.min, driverHistory.apdSlope);
         divMinMax[division].slope.max = Math.max(divMinMax[division].slope.max, driverHistory.apdSlope);
+        divMinMax[division].slope.values.push(driverHistory.apdSlope);
+
         divMinMax[division].variance.min = Math.min(divMinMax[division].variance.min, driverHistory.apdVariance);
         divMinMax[division].variance.max = Math.max(divMinMax[division].variance.max, driverHistory.apdVariance);
+        divMinMax[division].variance.values.push(driverHistory.apdVariance);
+
         divMinMax[division].avgAPD_ROC.min = Math.min(divMinMax[division].avgAPD_ROC.min, driverHistory.avgAPD_ROC);
         divMinMax[division].avgAPD_ROC.max = Math.max(divMinMax[division].avgAPD_ROC.max, driverHistory.avgAPD_ROC);
+        divMinMax[division].avgAPD_ROC.values.push(driverHistory.avgAPD_ROC);
     });
 
+    Object.keys(divMinMax).forEach((division) => {
+        divMinMax[parseInt(division)].APD.values.sort((a, b) => a - b);
+        divMinMax[parseInt(division)].slope.values.sort((a, b) => a - b);
+        divMinMax[parseInt(division)].variance.values.sort((a, b) => a - b);
+        divMinMax[parseInt(division)].avgAPD_ROC.values.sort((a, b) => a - b);
+
+        const median_idx = Math.floor(divMinMax[parseInt(division)].APD.values.length / 2);
+        divMinMax[parseInt(division)].APD.median = divMinMax[parseInt(division)].APD.values[median_idx];
+        divMinMax[parseInt(division)].slope.median = divMinMax[parseInt(division)].slope.values[median_idx];
+        divMinMax[parseInt(division)].variance.median = divMinMax[parseInt(division)].variance.values[median_idx];
+        divMinMax[parseInt(division)].avgAPD_ROC.median = divMinMax[parseInt(division)].avgAPD_ROC.values[median_idx];
+    });
+
+
     // sort by apd
-    if (sortByState === 'apd') {
-        filteredCarDrivers.sort((a, b) => a.tsAvgPercentDiff - b.tsAvgPercentDiff);
-    }
-    // sort by slope
-    else if (sortByState === 'slope') {
-        filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
-    }
-    // sort by avg roc
-    else if (sortByState === 'avg roc') {
-        filteredCarDrivers.sort((a, b) => a.avgAPD_ROC - b.avgAPD_ROC);
-    }
-    // sort by variance
-    else if (sortByState === 'variance') {
-        filteredCarDrivers.sort((a, b) => a.apdVariance - b.apdVariance);
+    switch (sortByState) {
+        case 'apd':
+            filteredCarDrivers.sort((a, b) => a.tsAvgPercentDiff - b.tsAvgPercentDiff);
+            break;
+        case 'slope':
+            filteredCarDrivers.sort((a, b) => a.apdSlope - b.apdSlope);
+            break;
+        case 'avg roc':
+            filteredCarDrivers.sort((a, b) => a.avgAPD_ROC - b.avgAPD_ROC);
+            break;
+        case 'variance':
+            filteredCarDrivers.sort((a, b) => a.apdVariance - b.apdVariance);
+            break;
+        case 'apd median':
+            filteredCarDrivers.sort((a, b) =>
+                (a.tsAvgPercentDiff - divMinMax[a.basicDriver?.raceDivision ?? 0].APD.median) -
+                (b.tsAvgPercentDiff - divMinMax[b.basicDriver?.raceDivision ?? 0].APD.median)
+            );
+            break;
+        default:
+            break;
     }
 
     // sort by division
@@ -160,7 +188,7 @@ export const APDPlot: React.FC<APDProps> = ({
 
     let insertIdxs: { [key: number]: number } = {};
 
-    let plotData = filteredCarDrivers.map((driverHistory, gd_idx) => {
+    let plotData = filteredCarDrivers.map((driverHistory, cd_idx) => {
         const driver = driverHistory.basicDriver;
         const isSelected = selectedDriver?.driverId === driver?.driverId;
         const divisionColor = SRADivColor.fromDivision(driverHistory.basicDriver?.raceDivision ?? 0).darken().darken().darken();
@@ -188,11 +216,12 @@ export const APDPlot: React.FC<APDProps> = ({
         const barColor = (sortByState == 'slope'
             || sortByState == 'avg roc'
             || sortByState == 'variance'
+            || sortByState == 'apd median'
             ? apdColor : avgROCColor
         );
 
         if (insertIdxs[driver?.raceDivision ?? 0] === undefined) {
-            insertIdxs[driver?.raceDivision ?? 0] = gd_idx;
+            insertIdxs[driver?.raceDivision ?? 0] = cd_idx;
         }
 
         return {
@@ -201,7 +230,8 @@ export const APDPlot: React.FC<APDProps> = ({
                 sortByState == 'slope' ? driverHistory.apdSlope * 100
                     : sortByState == 'variance' ? driverHistory.apdVariance * 100
                         : sortByState == 'avg roc' ? driverHistory.avgAPD_ROC * 100
-                            : driverHistory.tsAvgPercentDiff * 100
+                            : sortByState == 'apd median' ? (driverHistory.tsAvgPercentDiff - divMinMax[driver?.raceDivision ?? 0].APD.median) * 100
+                                : driverHistory.tsAvgPercentDiff * 100
             ],
             type: 'bar',
             name: `${driverHistory.basicDriver?.division?.toFixed(1)} | ${driverHistory.basicDriver?.name}`,
@@ -212,10 +242,11 @@ export const APDPlot: React.FC<APDProps> = ({
                     width: isSelected ? 2 : 0,
                 },
             },
-            text: `${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
+            text: `#${cd_idx + 1} ${driver?.division} | ${driver?.name}: ${(driverHistory.tsAvgPercentDiff * 100).toFixed(3)}%<br>`
                 + `Slope: ${(driverHistory.apdSlope * 100).toFixed(3)}%<br>`
                 + `Avg Rate of Change: ${(driverHistory.avgAPD_ROC * 100).toFixed(3)}%<br>`
                 + `Variance: ${(driverHistory.apdVariance * 100).toFixed(5)}%<br>`
+                + `Diff to Div Median: ${((driverHistory.tsAvgPercentDiff - divMinMax[driver?.raceDivision ?? 0].APD.median) * 100).toFixed(3)}%<br>`
                 + driverHistory.sessions
                     .map((s, s_idx) => {
                         const isQuali = s.sessionType === 'Q';
@@ -231,9 +262,10 @@ export const APDPlot: React.FC<APDProps> = ({
 
     // insert bars for division cutoffs
     if (sortByState == 'apd' && !sortByDivisionEnabledState && selectedDivisionsState.length == uniqueDivisions.length - 1) {
-        const driversPerDivision = (plotData.length + (uniqueDivisions.length - 1)) / (uniqueDivisions.length - 1);
+        const numDivisions = 6 + 1; // uniqueDivisions.length;
+        const driversPerDivision = (plotData.length + (numDivisions - 1)) / (numDivisions - 1);
         let i = plotData.length - 1;
-        let div = uniqueDivisions.length;
+        let div = numDivisions;
         while (i > 0) {
             const division = Math.floor(i / driversPerDivision) + 1;
             if (division != div) {
