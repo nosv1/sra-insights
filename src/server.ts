@@ -163,6 +163,7 @@ app.get('/api/laps', async (req, res) => {
             AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
             AND (size($sessionTypes) = 0 OR s.session_type IN $sessionTypes)
             AND (size($sessionKeys) = 0 OR s.key_ IN $sessionKeys)
+        WITH l, s, c, cd, d, datetime($afterDate) as afterDate, datetime($beforeDate) as beforeDate
         RETURN l, s, c, cd, d
         ORDER BY s.finish_time ASC, l.lap_number ASC
         LIMIT 10000`, // we handle this in the useLaps hook where we loop until we get less than 10000 laps
