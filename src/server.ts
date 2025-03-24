@@ -157,13 +157,14 @@ app.get('/api/laps', async (req, res) => {
         MATCH (cd:CarDriver)-[:CAR_DRIVER_TO_CAR]->(c)
         MATCH (d:Driver)-[:DRIVER_TO_CAR_DRIVER]->(cd)
         WHERE TRUE
-            AND s.finish_time >= datetime($afterDate)
-            AND s.finish_time < datetime($beforeDate)
             AND s.track_name = $trackName
             AND (size($carGroups) = 0 OR c.car_group IN $carGroups)
             AND (size($sessionTypes) = 0 OR s.session_type IN $sessionTypes)
             AND (size($sessionKeys) = 0 OR s.key_ IN $sessionKeys)
         WITH l, s, c, cd, d, datetime($afterDate) as afterDate, datetime($beforeDate) as beforeDate
+        WHERE TRUE
+            AND datetime(s.finish_time) >= datetime({year: afterDate.year, month: afterDate.month, day: afterDate.day, timezone: 'America/New_York'})
+            AND datetime(s.finish_time) < datetime({year: beforeDate.year, month: beforeDate.month, day: beforeDate.day, timezone: 'America/New_York'})
         RETURN l, s, c, cd, d
         ORDER BY s.finish_time ASC, l.lap_number ASC
         LIMIT 10000`, // we handle this in the useLaps hook where we loop until we get less than 10000 laps
