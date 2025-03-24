@@ -31,13 +31,18 @@ export const DriverPage: React.FC = () => {
     return (
         <div>
             <Header />
-            <h2>Driver Stats</h2>
+            {/* <h2>Driver Stats</h2> */}
             {/* <DriverSearch
                 onDriverSelect={handleDriverSelect}
                 basicDrivers={basicDrivers}
             /> */}
-            {selectedDriver && <p className="selected-driver">Selected Driver: {selectedDriver.name} {selectedDriver.driverId}</p>}
-            {selectedDriver ? <pre>{JSON.stringify(selectedDriver, null, 2)}</pre> : ''}
+            {selectedDriver ? <div>
+                <h2>{selectedDriver.name}</h2>
+                <p><a href={selectedDriver.sraMemberStatsURL} target="_blank" rel="noreferrer">SRA Member Stats</a></p>
+                <p><a href={selectedDriver.cjaURL} target="_blank" rel="noreferrer">CJA</a></p>
+                <p><a href={selectedDriver.sraInsightsURL} target="_blank" rel="noreferrer">SRA Insights</a></p>
+                <pre>{JSON.stringify(selectedDriver, null, 2)}</pre>
+            </div> : ''}
             <Footer />
         </div>
     );
