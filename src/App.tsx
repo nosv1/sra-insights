@@ -80,10 +80,6 @@ const App: React.FC = () => {
         <Route path="/races/race-insights" element={<RaceInsightsPage />} />
         <Route path="/races/apd-plot" element={<TeamSeriesAPDPlotPage />} />
         <Route path="/races/division-percent-differences" element={<DivisionPercentDifferences />} />
-        <Route path="/team-series/lap-time-insights" element={<LapTimeInsightsPage />} />
-        <Route path="/team-series/race-insights" element={<RaceInsightsPage />} />
-        <Route path="/team-series/apd-plot" element={<TeamSeriesAPDPlotPage />} />
-        <Route path="/team-series/division-percent-differences" element={<DivisionPercentDifferences />} />
       </Routes>
     </Router>
   );
