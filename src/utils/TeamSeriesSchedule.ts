@@ -46,5 +46,9 @@ export const S13_TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
     new TeamSeriesRound(8, 'valencia', moment.tz('2025-02-20', 'America/New_York').toDate())
 ]);
 
+export const S14_TEAM_SERIES_SCHEDULE = new TeamSeriesSchedule([
+    new TeamSeriesRound(1, 'indianapolis', moment.tz('2025-04-03', 'America/New_York').toDate()),
+]);
+
 export const S14_QUALIFYING = new TeamSeriesRound(1, 'imola', moment.tz('2025-03-02', 'America/New_York').toDate());
 export const INDY_QUALIFYING = new TeamSeriesRound(1, 'indianapolis', moment.tz('2025-03-12', 'America/New_York').toDate());
