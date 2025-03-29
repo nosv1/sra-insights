@@ -23,7 +23,7 @@ const App: React.FC = () => {
         <ul>
           {/* Driver Link */}
           <li>
-            <Link to="/driver">Driver</Link>
+            <Link to="/driver">Driver (WIP)</Link>
           </li>
 
           {/* Lap Times Dropdown */}
@@ -36,7 +36,8 @@ const App: React.FC = () => {
               {isLapTimesDropdownOpen && (
                 <ul>
                   <li>
-                    <Link to="/lap-times/leaderboards">Leaderboards</Link>
+                    <Link to="/lap-times/leaderboards?series=team-series">Team Series</Link>
+                    <Link to="/lap-times/leaderboards?series=endurance-series">Endurance Series</Link>
                   </li>
                   {/* Uncomment if needed */}
                   {/* <li>
@@ -77,7 +78,9 @@ const App: React.FC = () => {
         <Route path="/" element={<div></div>} />
         <Route path="/driver" element={<DriverPage />} />
         <Route path="/lap-times/leaderboards" element={<LeaderboardsPage />} />
+        {/* <Route path="/lap-times/weather-plot" element={<WeatherPlotPage />} /> */}
         <Route path="/races/race-insights" element={<RaceInsightsPage />} />
+        {/* <Route path="/races/championships" element={<ChampionshipsPage />} /> */}
         <Route path="/races/apd-plot" element={<TeamSeriesAPDPlotPage />} />
         <Route path="/races/division-percent-differences" element={<DivisionPercentDifferences />} />
       </Routes>

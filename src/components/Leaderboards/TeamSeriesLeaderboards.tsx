@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { INDY_QUALIFYING, S14_QUALIFYING, S14_TEAM_SERIES_SCHEDULE } from '../../utils/TeamSeriesSchedule';
+import { INDY_QUALIFYING, S14_QUALIFYING, S14_TEAM_SERIES_SCHEDULE, S1_ENDURANCE_SERIES_SCHEDULE } from '../../utils/Schedules';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
 import { ServerSelection } from '../ServerSelection';
@@ -14,12 +14,18 @@ import { DateSelection } from './DateSelection';
 import { LapTimeLeaderboard } from './LapTimeLeaderboard';
 import { LAP_ATTR_TO_TITLE, LapAttrSelection } from './LeaderboardSelection';
 
-export const TeamSeriesLeaderboards: React.FC = () => {
+export interface TeamSeriesLeaderboardsProps {
+    series?: 'team-series' | 'endurance-series';
+}
+
+export const TeamSeriesLeaderboards: React.FC<TeamSeriesLeaderboardsProps> = ({ series }) => {
     const currentDateTime = moment.tz('America/New_York').utc().toDate();
     const tzOffset = currentDateTime.getTimezoneOffset();
     const dayMilliseconds = 24 * 60 * 60 * 1000;
     const localDateTime = new Date(currentDateTime.getTime() - tzOffset * 60 * 1000);
-    const localOneWeekAgo = new Date(localDateTime.getTime() - 7 * dayMilliseconds);
+    const localNumWeeksAgo = (weeks: number) => {
+        return new Date(localDateTime.getTime() - (weeks * 7 * dayMilliseconds));
+    }
     const localTomorrow = new Date(localDateTime.getTime() + dayMilliseconds);
 
     const location = useLocation();
@@ -33,13 +39,21 @@ export const TeamSeriesLeaderboards: React.FC = () => {
         const selectedDivisions = params.get('selectedDivisions');
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
+
+        const defaultServers = series == 'team-series' ? ['server1', 'server2', 'server3', 'server4'] : ['server7'];
+        const defaultTrackName = series == 'team-series'
+            ? S14_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName
+            : S1_ENDURANCE_SERIES_SCHEDULE.getCurrentRound().trackName;
+        const defaultAfterDate = series == 'team-series'
+            ? localNumWeeksAgo(1).toISOString().split('T')[0]
+            : localNumWeeksAgo(3).toISOString().split('T')[0];
         return {
-            afterDate: afterDate || localOneWeekAgo.toISOString().split('T')[0],
+            afterDate: afterDate || defaultAfterDate,
             beforeDate: beforeDate || localTomorrow.toISOString().split('T')[0],
-            trackName: trackName || S14_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
+            trackName: trackName || defaultTrackName,
             selectedDivisions: selectedDivisions ? selectedDivisions?.split(',').map(Number) : [],
             selectedLapAttrs: selectedLapAttrs ? selectedLapAttrs?.split(',') : ['lapTime'],
-            selectedServers: selectedServers ? selectedServers?.split(',') : ['server1', 'server2', 'server3', 'server4']
+            selectedServers: selectedServers ? selectedServers?.split(',') : defaultServers
         };
     };
 
