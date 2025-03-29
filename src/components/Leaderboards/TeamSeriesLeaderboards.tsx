@@ -120,7 +120,6 @@ export const TeamSeriesLeaderboards: React.FC = () => {
                 {!loading && !error && (
                     <div>
                         <p>Number of laps loaded: {laps.length}</p>
-                        <p>Displaying Season 13's divisions!</p>
                     </div>
                 )}
             </div>
