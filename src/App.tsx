@@ -78,9 +78,9 @@ const App: React.FC = () => {
         <Route path="/" element={<div></div>} />
         <Route path="/driver" element={<DriverPage />} />
         <Route path="/lap-times/leaderboards" element={<LeaderboardsPage />} />
-        <Route path="/lap-times/weather-plot" element={<WeatherPlotPage />} />
+        {/* <Route path="/lap-times/weather-plot" element={<WeatherPlotPage />} /> */}
         <Route path="/races/race-insights" element={<RaceInsightsPage />} />
-        <Route path="/races/championships" element={<ChampionshipsPage />} />
+        {/* <Route path="/races/championships" element={<ChampionshipsPage />} /> */}
         <Route path="/races/apd-plot" element={<TeamSeriesAPDPlotPage />} />
         <Route path="/races/division-percent-differences" element={<DivisionPercentDifferences />} />
       </Routes>
