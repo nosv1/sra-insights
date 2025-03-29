@@ -172,17 +172,14 @@ export class Session {
     }
 
     toBasicJSON() {
+        const easternUTCOffset = moment.tz(new Date(), 'America/New_York').utcOffset() * 60000; // Offset in milliseconds
+        const easternTime = moment(this.finishTime.getTime() + easternUTCOffset); // Convert to Eastern Time
+
         return {
             key_: this.key_,
             trackName: this.trackName,
             sessionType: this.sessionType,
-            finishTime: moment(
-                this.finishTime.getTime() // central time
-                - (this.finishTime.getTimezoneOffset() - 60) * 60 * 1000 // convert to eastern time
-            ).toISOString(),
-            /* when a moment is outputed, it converts it to UTC, 
-            but we need it outputted in eastern, 
-            so we need to offset it before it's outputted */
+            finishTime: easternTime, // eastern time
             timeAgo: this.timeAgo,
             sessionFile: this.sessionFile,
             serverTitle: this.serverTitle,
