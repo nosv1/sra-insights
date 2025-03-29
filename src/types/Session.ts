@@ -78,7 +78,7 @@ export class Session {
                     .slice(0, -1),
                 'YYYY-MM-DDTHH:mm:ss',
                 'America/New_York'
-            ).utc().toDate(),
+            ).toDate(),
             sessionFile: node.properties['session_file'],
             server: node.properties['server_number'],
             serverName: node.properties['server_name'],
@@ -176,7 +176,13 @@ export class Session {
             key_: this.key_,
             trackName: this.trackName,
             sessionType: this.sessionType,
-            finishTime: this.finishTime,
+            finishTime: moment(
+                this.finishTime.getTime() // central time
+                - (this.finishTime.getTimezoneOffset() - 60) * 60 * 1000 // convert to eastern time
+            ).toISOString(),
+            /* when a moment is outputed, it converts it to UTC, 
+            but we need it outputted in eastern, 
+            so we need to offset it before it's outputted */
             timeAgo: this.timeAgo,
             sessionFile: this.sessionFile,
             serverTitle: this.serverTitle,
