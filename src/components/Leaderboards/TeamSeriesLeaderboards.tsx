@@ -52,7 +52,7 @@ export const TeamSeriesLeaderboards: React.FC = () => {
     const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(params.selectedLapAttrs);
     const [selectedServersState, setSelectedServers] = useState<string[]>(params.selectedServers);
-    const [uniqueServersState, setUniqueServers] = useState<string[]>(['server1', 'server2', 'server3', 'server4', 'server7']);
+    const [uniqueServersState, setUniqueServers] = useState<string[]>(['server1', 'server2', 'server3', 'server4', 'server5', 'server7']);
     const [medianDivisionTimesData, setMedianDivisionTimesData] = useState<Data>();
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
     const [filteredLapsState, setFilteredLaps] = useState<Lap[]>([]);
