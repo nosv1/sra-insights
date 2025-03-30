@@ -333,7 +333,7 @@ app.get('/api/seasons/points-reference', async (req, res) => {
 //////////      Misc      //////////
 app.get('/api/misc/division-times', async (req, res) => {
     const divisionTimesPerRound = await Promise.all(
-        S13_TEAM_SERIES_SCHEDULE.rounds.map(async (round: SeriesRound) => {
+        TEAM_SERIES_SCHEDULE.rounds.map(async (round: SeriesRound) => {
             const laps = await fetchLapsByAttrs({
                 afterDate: new Date(round.date.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 beforeDate: round.date.toISOString().split('T')[0],
