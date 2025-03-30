@@ -2,7 +2,7 @@ import { TrackSelection } from "../TrackSelection";
 import * as ss from 'simple-statistics';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { S13_TEAM_SERIES_SCHEDULE, SeriesSchedule } from "../../utils/Schedules";
+import { TEAM_SERIES_SCHEDULE, SeriesSchedule } from "../../utils/Schedules";
 import { DivSelection } from "../DivSelection";
 import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
 import Plot from 'react-plotly.js';
@@ -24,7 +24,10 @@ export const TimeInPitsPlot: React.FC = () => {
 
         return {
             selectedDivisions: selectedDivisions || [],
-            trackName: trackName || SeriesSchedule.getTrackFromRound(S13_TEAM_SERIES_SCHEDULE.getCurrentRound().round - 1),
+            trackName: trackName || SeriesSchedule.getTrackFromRound(
+                TEAM_SERIES_SCHEDULE,
+                TEAM_SERIES_SCHEDULE.getCurrentRound().round - 1
+            ),
             season: season ? parseInt(season) : 13,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
