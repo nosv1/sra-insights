@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLaps } from '../../hooks/useLaps';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { INDY_QUALIFYING, S14_QUALIFYING, S14_TEAM_SERIES_SCHEDULE, S1_ENDURANCE_SERIES_SCHEDULE } from '../../utils/Schedules';
+import { ENDURANCE_SERIES_SCHEDULE, TEAM_SERIES_SCHEDULE } from '../../utils/Schedules';
 import { DivSelection } from '../DivSelection';
 import { Footer } from '../Footer';
 import { ServerSelection } from '../ServerSelection';
@@ -42,8 +42,8 @@ export const TeamSeriesLeaderboards: React.FC<TeamSeriesLeaderboardsProps> = ({ 
 
         const defaultServers = series == 'team-series' ? ['server1', 'server2', 'server3', 'server4'] : ['server7'];
         const defaultTrackName = series == 'team-series'
-            ? S14_TEAM_SERIES_SCHEDULE.getCurrentRound().trackName
-            : S1_ENDURANCE_SERIES_SCHEDULE.getCurrentRound().trackName;
+            ? TEAM_SERIES_SCHEDULE.getCurrentRound().trackName
+            : ENDURANCE_SERIES_SCHEDULE.getCurrentRound().trackName;
         const defaultAfterDate = series == 'team-series'
             ? localNumWeeksAgo(1).toISOString().split('T')[0]
             : localNumWeeksAgo(3).toISOString().split('T')[0];
