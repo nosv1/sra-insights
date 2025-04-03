@@ -137,7 +137,7 @@ export class DriverHistory {
 
             const driverHistory = new DriverHistory({
                 basicDriver: carDriver.basicDriver,
-                sessionCars: [carDriver.sessionCar],
+                sessionCars: [],
             });
 
             const key = ignoreCarModel
@@ -146,7 +146,7 @@ export class DriverHistory {
             if (!driverHistories[key]) {
                 driverHistories[key] = driverHistory;
             }
-            driverHistories[key].sessionCars.push(driverHistory.sessionCars[0]);
+            driverHistories[key].sessionCars.push(carDriver.sessionCar);
             driverHistories[key].updateTSAvgPercentDiff(carDriver);
             carDriver.sessionCar.laps?.forEach(lap => driverHistories[key].updateLaps(lap));
         });
