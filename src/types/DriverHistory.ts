@@ -144,9 +144,10 @@ export class DriverHistory {
                 ? `${driverHistory.basicDriver?.driverId}`
                 : `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel.modelId}`;
             if (!driverHistories[key]) {
+                driverHistory.sessionCars = [];
                 driverHistories[key] = driverHistory;
             }
-            driverHistories[key].sessionCars.push(driverHistory.sessionCars[0]);
+            driverHistories[key].sessionCars.push(carDriver.sessionCar);
             driverHistories[key].updateTSAvgPercentDiff(carDriver);
             carDriver.sessionCar.laps?.forEach(lap => driverHistories[key].updateLaps(lap));
         });
