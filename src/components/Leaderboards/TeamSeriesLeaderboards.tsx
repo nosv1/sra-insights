@@ -40,7 +40,7 @@ export const TeamSeriesLeaderboards: React.FC<TeamSeriesLeaderboardsProps> = ({ 
         const selectedLapAttrs = params.get('selectedLapAttrs');
         const selectedServers = params.get('selectedServers');
 
-        const defaultServers = series == 'team-series' ? ['server1', 'server2', 'server3', 'server4'] : ['server7'];
+        const defaultServers = series == 'team-series' ? ['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4'] : ['SRAM7'];
         const defaultTrackName = series == 'team-series'
             ? TEAM_SERIES_SCHEDULE.getCurrentRound().trackName
             : ENDURANCE_SERIES_SCHEDULE.getCurrentRound().trackName;
@@ -66,7 +66,7 @@ export const TeamSeriesLeaderboards: React.FC<TeamSeriesLeaderboardsProps> = ({ 
     const [uniqueDivisionsState, setUniqueDivisions] = useState<number[]>([]);
     const [selectedLapAttrsState, setSelectedLapAttrs] = useState<string[]>(params.selectedLapAttrs);
     const [selectedServersState, setSelectedServers] = useState<string[]>(params.selectedServers);
-    const [uniqueServersState, setUniqueServers] = useState<string[]>(['server1', 'server2', 'server3', 'server4', 'server5', 'server7']);
+    const [uniqueServersState, setUniqueServers] = useState<string[]>(['SRAM1', 'SRAM2', 'SRAM3', 'SRAM4', 'SRAM5', 'SRAM7']);
     const [medianDivisionTimesData, setMedianDivisionTimesData] = useState<Data>();
     const { laps, loading, error } = useLaps(afterDateState, beforeDateState, trackNameState, ['GT3']);
     const [filteredLapsState, setFilteredLaps] = useState<Lap[]>([]);
@@ -104,7 +104,9 @@ export const TeamSeriesLeaderboards: React.FC<TeamSeriesLeaderboardsProps> = ({ 
         if (!laps || laps.length === 0)
             return;
 
-        setFilteredLaps(laps.filter(l => selectedServersState.includes(l.serverNumber)));
+        const serverToNumber = (server: string) => parseInt(server.replace('SRAM', ''));
+        const serverNumbers = (servers: string[]) => servers.map(serverToNumber);
+        setFilteredLaps(laps.filter(l => serverNumbers(selectedServersState).includes(parseInt(l.serverNumber))));
 
         setUniqueDivisions(Array
             .from(new Set(laps.map(lap => lap.driver?.raceDivision ?? 0)))
