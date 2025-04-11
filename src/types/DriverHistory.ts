@@ -137,13 +137,14 @@ export class DriverHistory {
 
             const driverHistory = new DriverHistory({
                 basicDriver: carDriver.basicDriver,
-                sessionCars: [],
+                sessionCars: [carDriver.sessionCar],
             });
 
             const key = ignoreCarModel
                 ? `${driverHistory.basicDriver?.driverId}`
                 : `${driverHistory.basicDriver?.driverId}_${driverHistory.sessionCars[0].carModel.modelId}`;
             if (!driverHistories[key]) {
+                driverHistory.sessionCars = [];
                 driverHistories[key] = driverHistory;
             }
             driverHistories[key].sessionCars.push(carDriver.sessionCar);
