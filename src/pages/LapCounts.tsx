@@ -1,5 +1,6 @@
 import moment from "moment"
 import { useEffect, useState } from "react"
+import { Footer } from "../components/Footer"
 import { Header } from "../components/Header"
 import { ArcadeLeaderboard, Cell, Data, Row } from "../components/Leaderboards/ArcadeLeaderboard"
 import { DriverHover } from "../components/Leaderboards/DriverHover"
@@ -93,6 +94,7 @@ export const LapCountsPage: React.FC = () => {
             <div className="leaderboards">
                 <ArcadeLeaderboard data={lapCountData} />
             </div>
+            <Footer />
         </div>
     )
 }
