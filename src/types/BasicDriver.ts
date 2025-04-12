@@ -76,8 +76,7 @@ export class BasicDriver {
             isSilver: this.isSilver,
             name: this.name,
             sraMemberStatsURL: this.sraMemberStatsURL,
-            sraInsightsURL: this.sraInsightsURL,
-            cjaURL: this.cjaURL,
+            sraInsightsURL: this.sraInsightsURL
         }
     }
 
