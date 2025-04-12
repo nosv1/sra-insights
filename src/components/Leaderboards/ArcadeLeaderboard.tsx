@@ -168,7 +168,7 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, incl
                         <div className="plot">
                             <Plot
                                 data={[{
-                                    x: sortedRows.map(row => getStringValue(row.row[0].displayValue)),
+                                    x: sortedRows.map(row => getStringValue(row.row[data.columns.indexOf(selectedColumns[0])].displayValue)),
                                     y: sortedRows.map(row => row.row[data.columns.indexOf(column)].sortValue),
                                     type: 'scatter',
                                     mode: 'markers',

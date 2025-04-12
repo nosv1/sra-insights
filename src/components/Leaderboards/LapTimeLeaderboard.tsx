@@ -132,7 +132,8 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
         title: `${LAP_ATTR_TO_TITLE[lapAttr]}s`,
         columns: lapAttr === 'lapTime'
             ? [ // Lap Time Leaderboard
-                'Div | Driver',
+                'Div',
+                'Driver',
                 'Car',
                 'Potential Valid',
                 'Best Valid',
@@ -142,13 +143,16 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                 'Closest Div Median',
             ]
             : [ // Split Leaderboard
-                'Div | Driver',
+                'Div',
+                'Driver',
                 'Car',
                 'Best Valid',
                 'Best',
                 'Closest Div Median',
             ],
-        defaultColumns: lapAttr === 'lapTime' ? ['Div | Driver', 'Potential Valid', 'Best Valid', 'Hot Stint'] : ['Div | Driver', 'Best Valid'],
+        defaultColumns: lapAttr === 'lapTime'
+            ? ['Div', 'Driver', 'Potential Valid', 'Best Valid', 'Hot Stint']
+            : ['Div', 'Driver', 'Best Valid'],
         rows: driverHistories
             .filter(dh => selectedDivisions.includes(dh.basicDriver?.raceDivision ?? 0) && dh.bestValidLap)
             .map(dh => {
@@ -171,14 +175,19 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                 }
 
                 const cells: { [key: string]: Cell } = {
-                    'Div | Driver': new Cell(
+                    'Div': new Cell(
+                        dh.basicDriver?.division.toFixed(1),
+                        dh.basicDriver?.division.toFixed(1),
+                        dh.basicDriver?.division.toFixed(1)
+                    ),
+                    'Driver': new Cell(
                         <div className="driver-hover-dropdown" onMouseEnter={() => setHoveredDriver(dh.basicDriver)} onMouseLeave={() => setHoveredDriver(undefined)}>
                             <a
                                 href={dh.basicDriver?.sraInsightsURL}
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                {`${dh.basicDriver?.division.toFixed(1)} | ${dh.basicDriver?.name}`}
+                                {dh.basicDriver?.name}
                             </a>
                             {hoveredDriver === dh.basicDriver && <DriverHover driver={hoveredDriver} />}
                         </div>,

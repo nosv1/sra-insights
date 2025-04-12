@@ -32,12 +32,17 @@ export const LapCountsPage: React.FC = () => {
 
     const lapCountData: Data = {
         title: `${Session.trackNameToTtile(currentRound.trackName)} Lap Counts`,
-        columns: ["Div | Driver", "Car", "Lap Count", "Best Lap", "Median Lap"],
-        defaultColumns: ["Div | Driver", "Car", "Lap Count"],
+        columns: ["Div", "Driver", "Car", "Lap Count", "Best Lap", "Median Lap"],
+        defaultColumns: ["Div", "Driver", "Car", "Lap Count"],
         rows: driverHistoriesState.map((dh) => {
 
             const cells: { [key: string]: Cell } = {
-                "Div | Driver": new Cell(
+                "Div": new Cell(
+                    `${dh.basicDriver?.division.toFixed(1)}`,
+                    null,
+                    `${dh.basicDriver?.division.toFixed(1)}`,
+                ),
+                "Driver": new Cell(
                     <div
                         className="driver-hover-dropdown"
                         onMouseEnter={() => setHoveredDriver(dh.basicDriver)}
@@ -48,7 +53,7 @@ export const LapCountsPage: React.FC = () => {
                             target="_blank"
                             rel="noreferrer"
                         >
-                            {`${dh.basicDriver?.division.toFixed(1)} | ${dh.basicDriver?.name}`}
+                            {dh.basicDriver?.name}
                         </a>
                         {hoveredDriver === dh.basicDriver && (
                             <DriverHover driver={hoveredDriver} />
