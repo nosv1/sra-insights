@@ -3,10 +3,11 @@ import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import './App.css';
 
 import { DriverPage } from './pages/DriverPage';
-import { TeamSeriesAPDPlotPage } from './pages/Races/APDPlotPage';
+import { LapCountsPage } from './pages/LapCounts';
 import { LeaderboardsPage } from './pages/LapTimes/LeaderboardsPage';
-import { RaceInsightsPage } from './pages/Races/RaceInsightsPage';
+import { TeamSeriesAPDPlotPage } from './pages/Races/APDPlotPage';
 import { DivisionPercentDifferences } from './pages/Races/DivisionPercentDifferences';
+import { RaceInsightsPage } from './pages/Races/RaceInsightsPage';
 
 const App: React.FC = () => {
   const [isLapTimesDropdownOpen, setIsLapTimesDropdownOpen] = useState(false);
@@ -24,6 +25,11 @@ const App: React.FC = () => {
           {/* Driver Link */}
           <li>
             <Link to="/driver">Driver (WIP)</Link>
+          </li>
+
+          {/* Lap Counts*/}
+          <li>
+            <Link to="/lap-counts">Lap Counts</Link>
           </li>
 
           {/* Lap Times Dropdown */}
@@ -78,6 +84,7 @@ const App: React.FC = () => {
         <Route path="/" element={<div></div>} />
         <Route path="/driver" element={<DriverPage />} />
         <Route path="/lap-times/leaderboards" element={<LeaderboardsPage />} />
+        <Route path="/lap-counts" element={<LapCountsPage />} />
         {/* <Route path="/lap-times/weather-plot" element={<WeatherPlotPage />} /> */}
         <Route path="/races/race-insights" element={<RaceInsightsPage />} />
         {/* <Route path="/races/championships" element={<ChampionshipsPage />} /> */}

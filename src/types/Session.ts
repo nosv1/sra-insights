@@ -141,6 +141,12 @@ export class Session {
         return session;
     }
 
+    static trackNameToTtile(trackName: string): string {
+        return trackName
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
     setDriverGapsToLeader() {
         let minRunningTimePerLapPerSplit: { runningTime: number, d_idx: number | undefined }[] = [{ runningTime: Number.MAX_VALUE, d_idx: undefined }]
         this.carDrivers?.forEach((cd, d_idx) => {
