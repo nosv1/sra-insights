@@ -9,8 +9,14 @@ export const DriverHover: React.FC<DriverHoverProps> = ({ driver }) => {
         <div className="driver-hover-dropdown">
             {driver && (
                 <div className="dropdown-content">
-                    <a href={driver.sraInsightsURL} target="_blank" rel="noreferrer">SRA Insights</a>
-                    <a href={driver.sraMemberStatsURL} target="_blank" rel="noreferrer">SRA Member Stats</a>
+                    <ul>
+                        <li>
+                            <a href={driver.sraInsightsURL} target="_blank" rel="noreferrer">SRA Insights</a>
+                        </li>
+                        <li>
+                            <a href={driver.sraMemberStatsURL} target="_blank" rel="noreferrer">SRA Member Stats</a>
+                        </li>
+                    </ul>
                 </div>
             )}
         </div>

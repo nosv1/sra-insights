@@ -493,7 +493,12 @@ footer {
 
 .driver-hover-dropdown {
   position: relative;
-  display: inline-block;
+  /* display: inline-block; */
+}
+
+.driver-hover-dropdown .dropdown-content ul {
+  list-style-type: none;
+  padding: 0;
 }
 
 .driver-hover-dropdown .dropdown-content {
