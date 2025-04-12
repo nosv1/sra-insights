@@ -29,7 +29,7 @@ export class DriverHistory {
 
     bestHotStint?: HotStint;
 
-    rollingValidMedianLap: number[] = []; // index of lap in lapsSortedByValidLap
+    rollingValidMedianLap: number[] = []; // index of lap in laps
     rollingValidMedianSplit1: number[] = [];
     rollingValidMedianSplit2: number[] = [];
     rollingValidMedianSplit3: number[] = [];
@@ -58,6 +58,10 @@ export class DriverHistory {
 
     get validLaps() {
         return this.laps.filter(lap => lap.isValidForBest);
+    }
+
+    get medianLap(): Lap {
+        return this.laps[this.rollingValidMedianLap[this.rollingValidMedianLap.length - 1]];
     }
 
     constructor(data: Partial<DriverHistory> = {}) {
