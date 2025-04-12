@@ -2,14 +2,18 @@ import moment from "moment"
 import { useEffect, useState } from "react"
 import { Header } from "../components/Header"
 import { ArcadeLeaderboard, Cell, Data, Row } from "../components/Leaderboards/ArcadeLeaderboard"
+import { DriverHover } from "../components/Leaderboards/DriverHover"
 import { LapsOverTimePlot } from "../components/Leaderboards/LapsOverTimePlot"
 import { useLaps } from "../hooks/useLaps"
+import { BasicDriver } from "../types/BasicDriver"
 import { DriverHistory } from "../types/DriverHistory"
 import { Lap } from "../types/Lap"
 import { Session } from "../types/Session"
 import { TEAM_SERIES_SCHEDULE } from "../utils/Schedules"
 
 export const LapCountsPage: React.FC = () => {
+    const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
+
     const currentRound = TEAM_SERIES_SCHEDULE.getCurrentRound()
     const localWeekAgo = moment.tz(currentRound.date, 'America/New_York').utc().subtract(7, 'days').toDate()
 
@@ -30,17 +34,48 @@ export const LapCountsPage: React.FC = () => {
         title: `${Session.trackNameToTtile(currentRound.trackName)} Lap Counts`,
         columns: ["Div | Driver", "Car", "Lap Count", "Best Lap", "Median Lap"],
         defaultColumns: ["Div | Driver", "Car", "Lap Count"],
-        rows: driverHistoriesState.map((driverHistory) => {
+        rows: driverHistoriesState.map((dh) => {
 
             const cells: { [key: string]: Cell } = {
-                "Div | Driver": new Cell(`${driverHistory.basicDriver?.raceDivision} | ${driverHistory.basicDriver?.name}`),
-                "Car": new Cell(driverHistory.sessionCars[0].carModel.name),
-                "Lap Count": new Cell(driverHistory.laps.length, null, driverHistory.laps.length),
-                "Best Lap": new Cell(Lap.timeToString(driverHistory.bestLap ? driverHistory.bestLap.lapTime : 0), null, driverHistory.bestLap ? driverHistory.bestLap.lapTime / 1000.0 : 0),
-                "Median Lap": new Cell(Lap.timeToString(driverHistory.medianLap ? driverHistory.medianLap.lapTime : 0), null, driverHistory.medianLap ? driverHistory.medianLap.lapTime / 1000.0 : 0),
-            }
+                "Div | Driver": new Cell(
+                    <div
+                        className="driver-hover-dropdown"
+                        onMouseEnter={() => setHoveredDriver(dh.basicDriver)}
+                        onMouseLeave={() => setHoveredDriver(undefined)}
+                    >
+                        <a
+                            href={dh.basicDriver?.sraInsightsURL}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            {`${dh.basicDriver?.division.toFixed(1)} | ${dh.basicDriver?.name}`}
+                        </a>
+                        {hoveredDriver === dh.basicDriver && (
+                            <DriverHover driver={hoveredDriver} />
+                        )}
+                    </div>
+                ),
+                "Car": new Cell(
+                    dh.sessionCars[0].carModel.name
+                ),
+                "Lap Count": new Cell(
+                    dh.laps.length,
+                    null,
+                    dh.laps.length
+                ),
+                "Best Lap": new Cell(
+                    Lap.timeToString(dh.bestLap ? dh.bestLap.lapTime : 0),
+                    null,
+                    dh.bestLap ? dh.bestLap.lapTime / 1000.0 : 0
+                ),
+                "Median Lap": new Cell(
+                    Lap.timeToString(dh.medianLap ? dh.medianLap.lapTime : 0),
+                    null,
+                    dh.medianLap ? dh.medianLap.lapTime / 1000.0 : 0
+                ),
+            };
 
-            return new Row(Object.values(cells), <LapsOverTimePlot driverHistory={driverHistory} lapAttr={"lapTime"} />);
+            return new Row(Object.values(cells), <LapsOverTimePlot driverHistory={dh} lapAttr={"lapTime"} />);
 
         })
     }
