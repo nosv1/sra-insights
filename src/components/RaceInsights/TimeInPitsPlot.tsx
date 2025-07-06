@@ -28,7 +28,7 @@ export const TimeInPitsPlot: React.FC = () => {
                 TEAM_SERIES_SCHEDULE,
                 TEAM_SERIES_SCHEDULE.getCurrentRound().round - 1
             ),
-            season: season ? parseInt(season) : 14,
+            season: season ? parseInt(season) : 15,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
     };
