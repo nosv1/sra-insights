@@ -32,7 +32,7 @@ export const APDPlots: React.FC = () => {
             sortByDivisionEnabled: sortByDivisionEnabled,
             sortBy: sortBy || 'apd',
             singleSeasonEnabled: singleSeasonEnabled,
-            singleSeason: seasonParams[0] || 14,
+            singleSeason: seasonParams[0] || 15,
         }
     };
 
