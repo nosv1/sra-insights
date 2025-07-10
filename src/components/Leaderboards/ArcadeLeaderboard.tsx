@@ -176,7 +176,7 @@ export const ArcadeLeaderboard: React.FC<ArcadeLeaderboardProps> = ({ data, incl
                                 }]}
                                 layout={{
                                     title: `${data.title} - ${column}`,
-                                    xaxis: { title: { text: data.columns[0] } },
+                                    xaxis: { title: { text: selectedColumns[0] } },
                                     yaxis: { title: column },
                                     height: 400,
                                     plot_bgcolor: 'rgba(0,0,0,0)',
