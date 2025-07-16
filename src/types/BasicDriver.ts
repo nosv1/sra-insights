@@ -86,3 +86,10 @@ export class BasicDriver {
         };
     }
 }
+
+export type DriverLapCount = {
+    basicDriver: BasicDriver | undefined
+    lapCount: number
+}
+
+export type DriverLapCountDict = { [driverId: string]: DriverLapCount }
