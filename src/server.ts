@@ -4,7 +4,13 @@ import express from 'express';
 import neo4j from 'neo4j-driver';
 import { LAP_ATTRS } from './components/Leaderboards/LeaderboardSelection';
 import { fetchLapsByAttrs } from './services/LapService';
-import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchTeamSeriesRacesByAttrs, fetchWeekendByKey } from './services/SessionService';
+import {
+    fetchCompleteWeekendByKey,
+    fetchSessionsWithCars,
+    fetchSessionsWithLapsByKey,
+    fetchTeamSeriesRacesByAttrs,
+    fetchWeekendByKey
+} from './services/SessionService';
 import { BasicDriver, DriverLapCount } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
 import { DriverHistory } from './types/DriverHistory';
