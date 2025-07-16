@@ -4,6 +4,7 @@ import express from 'express';
 import neo4j from 'neo4j-driver';
 import { LAP_ATTRS } from './components/Leaderboards/LeaderboardSelection';
 import { fetchLapsByAttrs } from './services/LapService';
+import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchTeamSeriesRacesByAttrs, fetchWeekendByKey } from './services/SessionService';
 import { BasicDriver, DriverLapCount } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
 import { DriverHistory } from './types/DriverHistory';
@@ -372,7 +373,7 @@ app.get('/api/misc/lap-counts', async (req, res) => {
         let driver = BasicDriver.fromRecord(record)
         return {
             basicDriver: driver?.toJSON(),
-            lapCount: record.get('lap_count') as Integer
+            lapCount: record.get('lap_count') as number
         } as DriverLapCount;
     });
     res.json(driversAndLapCounts);
