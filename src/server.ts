@@ -368,16 +368,15 @@ app.get('/api/misc/lap-counts', async (req, res) => {
         { afterDate, beforeDate }
     );
 
-    const driverLapCounts: { [driverId: string]: DriverLapCount } = {}
-    result.records.forEach(record => {
+    const driversAndLapCounts: DriverLapCount[] = result.records.map(record => {
         let driver = BasicDriver.fromRecord(record)
-        let lapCount = record.get('lap_count') as number;
-        if (driver !== undefined)
-            driverLapCounts[driver.driverId] = { basicDriver: driver, lapCount: lapCount };
+        return {
+            basicDriver: driver?.toJSON(),
+            lapCount: record.get('lap_count') as Integer
+        } as DriverLapCount;
     });
-    res.json(driverLapCounts);
+    res.json(driversAndLapCounts);
 });
-
 
 app.get('/api/misc/division-times', async (req, res) => {
     const divisionTimesPerRound = await Promise.all(
