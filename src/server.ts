@@ -5,7 +5,7 @@ import neo4j from 'neo4j-driver';
 import { LAP_ATTRS } from './components/Leaderboards/LeaderboardSelection';
 import { fetchLapsByAttrs } from './services/LapService';
 import { fetchCompleteSessionByKey, fetchCompleteWeekendByKey, fetchTeamSeriesRacesByAttrs, fetchWeekendByKey } from './services/SessionService';
-import { BasicDriver } from './types/BasicDriver';
+import { BasicDriver, DriverLapCount } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
 import { DriverHistory } from './types/DriverHistory';
 import { Lap } from './types/Lap';
@@ -338,6 +338,47 @@ app.get('/api/seasons/points-reference', async (req, res) => {
 });
 
 //////////      Misc      //////////
+app.get('/api/misc/lap-counts', async (req, res) => {
+    const afterDate = req.query.afterDate || '1970-01-01';
+    const beforeDate = req.query.beforeDate || '9999-12-31';
+
+    const result = await runQuery(`
+        MATCH (s:Session)
+        WITH s, datetime($afterDate) as afterDate, datetime($beforeDate) as beforeDate
+        WHERE TRUE 
+            AND s.session_type = "FP"
+            AND s.server_number IN ["1", "2", "3", "4"]
+            AND datetime(s.finish_time) >= datetime({year: afterDate.year, month: afterDate.month, day: afterDate.day, timezone: 'America/New_York'})
+            AND datetime(s.finish_time) <= datetime({year: beforeDate.year, month: beforeDate.month, day: beforeDate.day, timezone: 'America/New_York'})
+        WITH s
+
+        MATCH (l:Lap)-[:LAP_TO_SESSION]->(s)
+        WITH l, s
+
+        MATCH (l)-[:LAP_TO_CAR]->(c:Car)
+        WHERE c.car_group in ["GT3"]
+        WITH l, s, c
+
+        MATCH (cd:CarDriver)-[:CAR_DRIVER_TO_CAR]->(c)
+        MATCH (d:Driver)-[:DRIVER_TO_CAR_DRIVER]->(cd)
+        WITH d, count(l) as lap_count
+
+        RETURN d, lap_count
+        ORDER BY lap_count DESC`,
+        `Fetching lap counts between ${afterDate} and ${beforeDate}`,
+        { afterDate, beforeDate }
+    );
+
+    const driversAndLapCounts: DriverLapCount[] = result.records.map(record => {
+        let driver = BasicDriver.fromRecord(record)
+        return {
+            basicDriver: driver?.toJSON(),
+            lapCount: record.get('lap_count') as number
+        } as DriverLapCount;
+    });
+    res.json(driversAndLapCounts);
+});
+
 app.get('/api/misc/division-times', async (req, res) => {
     const divisionTimesPerRound = await Promise.all(
         TEAM_SERIES_SCHEDULE.rounds.map(async (round: SeriesRound) => {
