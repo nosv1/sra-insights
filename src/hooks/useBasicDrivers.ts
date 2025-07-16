@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchBasicDrivers } from "../services/DriverService";
-import { BasicDriver } from "../types/BasicDriver";
+import { fetchBasicDrivers, fetchBasicDriverLapCounts as fetchDriverLapCounts } from "../services/DriverService";
+import { BasicDriver, DriverLapCountDict } from "../types/BasicDriver";
 
 export const useBasicDrivers = () => {
     const [basicDrivers, setBasicDrivers] = useState<BasicDriver[]>([]);
@@ -23,3 +23,25 @@ export const useBasicDrivers = () => {
 
     return { basicDrivers, loading, error };
 };
+
+export const useDriverLapCounts = (afterDate: string, beforeDate: string) => {
+    const [driverLapCounts, setDriverLapCounts] = useState<DriverLapCountDict>({});
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const driverLapCounts = await fetchDriverLapCounts(afterDate, beforeDate);
+                setDriverLapCounts(driverLapCounts);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    return { driverLapCounts, loading, error };
+}

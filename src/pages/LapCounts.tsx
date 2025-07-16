@@ -11,13 +11,27 @@ import { DriverHistory } from "../types/DriverHistory"
 import { Lap } from "../types/Lap"
 import { Session } from "../types/Session"
 import { TEAM_SERIES_SCHEDULE } from "../utils/Schedules"
+import { useDriverLapCounts } from "../hooks/useBasicDrivers"
 
 export const LapCountsPage: React.FC = () => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
 
     const currentRound = TEAM_SERIES_SCHEDULE.getCurrentRound()
-    const localWeekAgo = moment.tz(currentRound.date, 'America/New_York').utc().subtract(7, 'days').toDate()
+    const localWeekAgo = moment
+        .tz(currentRound.date, 'America/New_York')
+        .utc()
+        .subtract(7, 'days')
+        .toDate()
 
+    const { driverLapCounts, loading: lapCountsLoading, error: lapCountsError } = useDriverLapCounts(
+        moment
+            .tz(TEAM_SERIES_SCHEDULE.rounds[0].date, 'America/New_York')
+            .utc()
+            .subtract(7, 'days')
+            .toDate()
+            .toISOString(),
+        currentRound.date.toISOString()
+    );
     const { laps, loading: laps_loading, error: laps_error } = useLaps(localWeekAgo.toISOString(), currentRound.date.toISOString(),
         currentRound.trackName, ["GT3"]);
     const [driverHistoriesState, setDriverHistories] = useState<DriverHistory[]>([]);
@@ -33,8 +47,8 @@ export const LapCountsPage: React.FC = () => {
 
     const lapCountData: Data = {
         title: `${Session.trackNameToTtile(currentRound.trackName)} Lap Counts`,
-        columns: ["Div", "Driver", "Car", "Lap Count", "Best Lap", "Median Lap"],
-        defaultColumns: ["Div", "Driver", "Car", "Lap Count"],
+        columns: ["Div", "Driver", "Car", "Round Count", "Season Count", "Best Lap", "Median Lap"],
+        defaultColumns: ["Div", "Driver", "Car", "Round Count"],
         rows: driverHistoriesState.map((dh) => {
 
             const cells: { [key: string]: Cell } = {
@@ -64,11 +78,21 @@ export const LapCountsPage: React.FC = () => {
                 "Car": new Cell(
                     dh.sessionCars[0].carModel.name
                 ),
-                "Lap Count": new Cell(
+                "Round Count": new Cell(
                     dh.laps.length,
                     null,
                     dh.laps.length
                 ),
+                "Season Count": (() => {
+                    const driverId = dh.basicDriver?.driverId;
+                    const lapEntry = driverId ? driverLapCounts[driverId] : undefined;
+
+                    if (lapEntry?.lapCount) {
+                        const count = lapEntry.lapCount ?? 0;
+                        return new Cell(count.toString(), null, count);
+                    } else
+                        return new Cell("0", null, 0);
+                })(),
                 "Best Lap": new Cell(
                     Lap.timeToString(dh.bestLap ? dh.bestLap.lapTime : 0),
                     null,
