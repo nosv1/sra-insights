@@ -10,8 +10,9 @@ import {
     fetchTeamSeriesRacesByAttrs,
     fetchWeekendByKey
 } from './services/SessionService';
-import { BasicDriver, DriverLapCount } from './types/BasicDriver';
+import { BasicDriver, DriverCarLapCount } from './types/BasicDriver';
 import { CarDriver } from './types/CarDriver';
+import { CarModel } from './types/CarModel';
 import { DriverHistory } from './types/DriverHistory';
 import { Lap } from './types/Lap';
 import { Season } from './types/Season';
@@ -366,23 +367,28 @@ app.get('/api/misc/lap-counts', async (req, res) => {
 
         MATCH (cd:CarDriver)-[:CAR_DRIVER_TO_CAR]->(c)
         MATCH (d:Driver)-[:DRIVER_TO_CAR_DRIVER]->(cd)
-        WITH d, count(l) as lap_count
+        WITH d, c.car_model as car_model, count(l) as lap_count
 
-        RETURN d, lap_count
+        RETURN d, car_model, lap_count
         ORDER BY lap_count DESC`,
         `Fetching lap counts between ${afterDate} and ${beforeDate}`,
         { afterDate, beforeDate }
     );
 
-    const driverLapCounts: { [driverId: string]: DriverLapCount } = {}
+    const driverCarLapCounts: { [driverId: string]: DriverCarLapCount } = {}
 
     result.records.forEach(record => {
-        let driver = BasicDriver.fromRecord(record)
+        let driver = BasicDriver.fromRecord(record);
+        let carModel = CarModel.fromModelId(record.get("car_model"));
         let lapCount = record.get('lap_count') as number
         if (driver !== undefined)
-            driverLapCounts[driver?.driverId] = { basicDriver: driver, lapCount: lapCount };
+            driverCarLapCounts[`${driver?.driverId}-${carModel?.modelId}`] = {
+                basicDriver: driver,
+                carModel: carModel,
+                lapCount: lapCount
+            };
     });
-    res.json(driverLapCounts);
+    res.json(driverCarLapCounts);
 });
 
 app.get('/api/misc/division-times', async (req, res) => {

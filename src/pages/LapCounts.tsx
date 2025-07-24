@@ -11,7 +11,7 @@ import { DriverHistory } from "../types/DriverHistory"
 import { Lap } from "../types/Lap"
 import { Session } from "../types/Session"
 import { TEAM_SERIES_SCHEDULE } from "../utils/Schedules"
-import { useDriverLapCounts } from "../hooks/useBasicDrivers"
+import { useDriverCarLapCounts } from "../hooks/useBasicDrivers"
 
 export const LapCountsPage: React.FC = () => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
@@ -23,7 +23,7 @@ export const LapCountsPage: React.FC = () => {
         .subtract(7, 'days')
         .toDate()
 
-    const { driverLapCounts, loading: lapCountsLoading, error: lapCountsError } = useDriverLapCounts(
+    const { driverCarLapCounts: driverCarLapCounts, loading: lapCountsLoading, error: lapCountsError } = useDriverCarLapCounts(
         moment
             .tz(TEAM_SERIES_SCHEDULE.rounds[0].date, 'America/New_York')
             .utc()
@@ -85,7 +85,8 @@ export const LapCountsPage: React.FC = () => {
                 ),
                 "Season Count": (() => {
                     const driverId = dh.basicDriver?.driverId;
-                    const lapEntry = driverId ? driverLapCounts[driverId] : undefined;
+                    const carModel = dh.sessionCars[0].carModel
+                    const lapEntry = driverId ? driverCarLapCounts[`${driverId}-${carModel.modelId}`] : undefined;
 
                     if (lapEntry?.lapCount) {
                         const count = lapEntry.lapCount ?? 0;
