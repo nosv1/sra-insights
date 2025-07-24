@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchBasicDrivers, fetchBasicDriverLapCounts as fetchDriverLapCounts } from "../services/DriverService";
-import { BasicDriver, DriverLapCountDict } from "../types/BasicDriver";
+import { fetchBasicDrivers, fetchBasicDriverLapCounts as fetchDriverCarLapCounts } from "../services/DriverService";
+import { BasicDriver, DriverCarLapCountDict } from "../types/BasicDriver";
 
 export const useBasicDrivers = () => {
     const [basicDrivers, setBasicDrivers] = useState<BasicDriver[]>([]);
@@ -24,16 +24,16 @@ export const useBasicDrivers = () => {
     return { basicDrivers, loading, error };
 };
 
-export const useDriverLapCounts = (afterDate: string, beforeDate: string) => {
-    const [driverLapCounts, setDriverLapCounts] = useState<DriverLapCountDict>({});
+export const useDriverCarLapCounts = (afterDate: string, beforeDate: string) => {
+    const [driverCarLapCounts, setDriverLapCounts] = useState<DriverCarLapCountDict>({});
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const driverLapCounts = await fetchDriverLapCounts(afterDate, beforeDate);
-                setDriverLapCounts(driverLapCounts);
+                const driverCarLapCounts = await fetchDriverCarLapCounts(afterDate, beforeDate);
+                setDriverLapCounts(driverCarLapCounts);
             } catch (err) {
                 setError((err as Error).message);
             } finally {
@@ -43,5 +43,5 @@ export const useDriverLapCounts = (afterDate: string, beforeDate: string) => {
         fetchData();
     }, []);
 
-    return { driverLapCounts, loading, error };
+    return { driverCarLapCounts: driverCarLapCounts, loading, error };
 }

@@ -1,4 +1,5 @@
 import { Node, RecordShape } from "neo4j-driver";
+import { CarModel } from "./CarModel";
 
 export class BasicDriver {
     driverId: string;
@@ -87,9 +88,10 @@ export class BasicDriver {
     }
 }
 
-export type DriverLapCount = {
+export type DriverCarLapCount = {
     basicDriver: BasicDriver | undefined
+    carModel: CarModel | undefined
     lapCount: number
 }
 
-export type DriverLapCountDict = { [driverId: string]: DriverLapCount }
+export type DriverCarLapCountDict = { [driverId: string]: DriverCarLapCount }
