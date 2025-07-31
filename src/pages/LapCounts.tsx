@@ -17,22 +17,22 @@ export const LapCountsPage: React.FC = () => {
     const [hoveredDriver, setHoveredDriver] = useState<BasicDriver | undefined>(undefined);
 
     const currentRound = TEAM_SERIES_SCHEDULE.getCurrentRound()
-    const localWeekAgo = moment
+    const localTwoWeeksAgo = moment
         .tz(currentRound.date, 'America/New_York')
         .utc()
-        .subtract(7, 'days')
+        .subtract(14, 'days')
         .toDate()
 
     const { driverCarLapCounts: driverCarLapCounts, loading: lapCountsLoading, error: lapCountsError } = useDriverCarLapCounts(
         moment
             .tz(TEAM_SERIES_SCHEDULE.rounds[0].date, 'America/New_York')
             .utc()
-            .subtract(7, 'days')
+            .subtract(14, 'days')
             .toDate()
             .toISOString(),
         currentRound.date.toISOString()
     );
-    const { laps, loading: laps_loading, error: laps_error } = useLaps(localWeekAgo.toISOString(), currentRound.date.toISOString(),
+    const { laps, loading: laps_loading, error: laps_error } = useLaps(localTwoWeeksAgo.toISOString(), currentRound.date.toISOString(),
         currentRound.trackName, ["GT3"]);
     const [driverHistoriesState, setDriverHistories] = useState<DriverHistory[]>([]);
 
