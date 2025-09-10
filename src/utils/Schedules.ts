@@ -47,10 +47,10 @@ export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
 ]);
 
 export const ENDURANCE_SERIES_SCHEDULE = new SeriesSchedule([
-    new SeriesRound(1, 'red_bull_ring', moment.tz('2024-09-21', 'America/New_York').toDate()),
-    new SeriesRound(2, 'brands_hatch', moment.tz('2024-11-02', 'America/New_York').toDate()),
-    new SeriesRound(3, 'misano', moment.tz('2024-12-07', 'America/New_York').toDate()),
-    new SeriesRound(4, 'nurburgring', moment.tz('2025-01-11', 'America/New_York').toDate()),
-    new SeriesRound(5, 'paul_ricard', moment.tz('2025-02-22', 'America/New_York').toDate()),
-    new SeriesRound(6, 'indianapolis', moment.tz('2025-04-05', 'America/New_York').toDate())
+    new SeriesRound(1, 'barcelona', moment.tz('2025-09-13', 'America/New_York').toDate()),
+    new SeriesRound(2, 'nurburgring_24h', moment.tz('2025-10-18', 'America/New_York').toDate()),
+    new SeriesRound(3, 'suzuka', moment.tz('2025-11-22', 'America/New_York').toDate()),
+    new SeriesRound(4, 'mount_panorama', moment.tz('2025-12-20', 'America/New_York').toDate()),
+    new SeriesRound(5, 'imola', moment.tz('2026-01-31', 'America/New_York').toDate()),
+    new SeriesRound(6, 'spa', moment.tz('2026-03-07', 'America/New_York').toDate())
 ]);
