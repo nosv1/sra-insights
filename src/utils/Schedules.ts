@@ -36,7 +36,7 @@ export class SeriesSchedule {
 
 export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
-    new SeriesRound(1, 'paul_ricard', moment.tz('2025-07-10', 'America/New_York').toDate()),
+    new SeriesRound(1, 'silverstone', moment.tz('2025-10-16', 'America/New_York').toDate()),
     new SeriesRound(2, 'nurburgring', moment.tz('2025-07-17', 'America/New_York').toDate()),
     new SeriesRound(3, 'barcelona', moment.tz('2025-07-24', 'America/New_York').toDate()),
     new SeriesRound(4, 'donington', moment.tz('2025-07-31', 'America/New_York').toDate()),
