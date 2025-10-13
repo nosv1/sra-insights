@@ -37,13 +37,13 @@ export class SeriesSchedule {
 export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
     new SeriesRound(1, 'silverstone', moment.tz('2025-10-16', 'America/New_York').toDate()),
-    new SeriesRound(2, 'nurburgring', moment.tz('2025-07-17', 'America/New_York').toDate()),
-    new SeriesRound(3, 'barcelona', moment.tz('2025-07-24', 'America/New_York').toDate()),
-    new SeriesRound(4, 'donington', moment.tz('2025-07-31', 'America/New_York').toDate()),
-    new SeriesRound(5, 'hungaroring', moment.tz('2025-08-14', 'America/New_York').toDate()),
-    new SeriesRound(6, 'laguna_seca', moment.tz('2025-08-21', 'America/New_York').toDate()),
-    new SeriesRound(7, 'kyalami', moment.tz('2025-08-28', 'America/New_York').toDate()),
-    new SeriesRound(8, 'monza', moment.tz('2025-09-04', 'America/New_York').toDate()),
+    new SeriesRound(2, 'cota', moment.tz('2025-10-23', 'America/New_York').toDate()),
+    new SeriesRound(3, 'valencia', moment.tz('2025-10-30', 'America/New_York').toDate()),
+    new SeriesRound(4, 'zandvoort', moment.tz('2025-11-06', 'America/New_York').toDate()),
+    new SeriesRound(5, 'hungaroring', moment.tz('2025-11-13', 'America/New_York').toDate()),
+    new SeriesRound(6, 'laguna_seca', moment.tz('2025-11-20', 'America/New_York').toDate()),
+    new SeriesRound(7, 'suzuka', moment.tz('2025-12-04', 'America/New_York').toDate()),
+    new SeriesRound(8, 'monza', moment.tz('2025-12-08', 'America/New_York').toDate()),
 ]);
 
 export const ENDURANCE_SERIES_SCHEDULE = new SeriesSchedule([
