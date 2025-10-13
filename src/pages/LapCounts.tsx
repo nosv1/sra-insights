@@ -95,9 +95,9 @@ export const LapCountsPage: React.FC = () => {
                         return new Cell("0", null, 0);
                 })(),
                 "Best Lap": new Cell(
-                    Lap.timeToString(dh.bestLap ? dh.bestLap.lapTime : 0),
+                    Lap.timeToString(dh.bestValidLap ? dh.bestValidLap.lapTime : 0),
                     null,
-                    dh.bestLap ? dh.bestLap.lapTime / 1000.0 : 0
+                    dh.bestValidLap ? dh.bestValidLap.lapTime / 1000.0 : 0
                 ),
                 "Median Lap": new Cell(
                     Lap.timeToString(dh.medianLap ? dh.medianLap.lapTime : 0),
