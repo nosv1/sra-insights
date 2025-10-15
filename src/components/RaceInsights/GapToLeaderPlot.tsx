@@ -21,11 +21,8 @@ export const GapToLeaderPlot: React.FC = () => {
 
         return {
             selectedDivisions: selectedDivisions || [],
-            trackName: trackName || SeriesSchedule.getTrackFromRound(
-                TEAM_SERIES_SCHEDULE,
-                TEAM_SERIES_SCHEDULE.getCurrentRound().round - 1
-            ),
-            season: season ? parseInt(season) : 15,
+            trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
+            season: season ? parseInt(season) : 16,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
     };
