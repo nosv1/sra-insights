@@ -28,10 +28,6 @@ export class SeriesSchedule {
         }
         return this.rounds[this.rounds.length - 1];
     };
-
-    static getTrackFromRound(schedule: SeriesSchedule, round: number): string {
-        return schedule.rounds[round - 1].trackName;
-    };
 }
 
 export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([

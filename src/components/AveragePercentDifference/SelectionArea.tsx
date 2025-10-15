@@ -80,7 +80,7 @@ export const SelectionArea: React.FC<SelectionAreaProps> = ({
     const handleSingleSeasonToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSingleSeasonEnabled(event.target.checked);
         if (!event.target.checked) {
-            setSingleSeason(15);
+            setSingleSeason(16);
         }
     };
 
