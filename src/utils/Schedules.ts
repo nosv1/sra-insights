@@ -37,9 +37,9 @@ export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
     new SeriesRound(3, 'valencia', moment.tz('2025-10-30', 'America/New_York').toDate()),
     new SeriesRound(4, 'zandvoort', moment.tz('2025-11-06', 'America/New_York').toDate()),
     new SeriesRound(5, 'mount_panorama', moment.tz('2025-11-13', 'America/New_York').toDate()),
-    new SeriesRound(6, 'laguna_seca', moment.tz('2025-11-20', 'America/New_York').toDate()),
-    new SeriesRound(7, 'suzuka', moment.tz('2025-12-04', 'America/New_York').toDate()),
-    new SeriesRound(8, 'monza', moment.tz('2025-12-08', 'America/New_York').toDate()),
+    new SeriesRound(6, 'suzuka', moment.tz('2025-11-20', 'America/New_York').toDate()),
+    new SeriesRound(7, 'brands_hatch', moment.tz('2025-12-04', 'America/New_York').toDate()),
+    new SeriesRound(8, 'misano', moment.tz('2025-12-08', 'America/New_York').toDate()),
 ]);
 
 export const ENDURANCE_SERIES_SCHEDULE = new SeriesSchedule([
