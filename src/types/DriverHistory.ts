@@ -311,7 +311,6 @@ export class DriverHistory {
 
                 let bestTimesArray = Object.values(bestDivisionTimes).filter(time => time > 0);
                 bestTimesArray.sort((a, b) => a - b);
-                bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
 
                 let potentialBestTimesArray = Object.values(potentialBestDivisionTimes).filter(time => time > 0);
                 potentialBestTimesArray.sort((a, b) => a - b);
@@ -323,6 +322,8 @@ export class DriverHistory {
                     averageDivisionTimes[division].potentialBest = 0;
                     return;
                 }
+
+                bestTimes[lapAttr] = Math.min(bestTimes[lapAttr], bestTimesArray[0]);
 
                 if (divIsAlien) {
                     bestTimesArray = bestTimesArray.slice(0, Math.floor(bestTimesArray.length * 0.1));
