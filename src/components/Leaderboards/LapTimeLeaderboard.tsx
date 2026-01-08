@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { ArcadeLeaderboard } from './ArcadeLeaderboard';
+import { BasicDriver } from '../../types/BasicDriver';
 import { DriverHistory } from '../../types/DriverHistory';
 import { Lap } from '../../types/Lap';
-import { Data, Cell, Row } from './ArcadeLeaderboard';
-import { LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
+import { ArcadeLeaderboard, Cell, Data, Row } from './ArcadeLeaderboard';
 import { DriverHover } from './DriverHover';
-import { BasicDriver } from '../../types/BasicDriver';
 import { LapsOverTimePlot } from './LapsOverTimePlot';
+import { LAP_ATTR_TO_TITLE } from './LeaderboardSelection';
 
 export interface LapTimeLeaderboardProps {
     driverHistories: DriverHistory[];
@@ -187,7 +186,7 @@ export const LapTimeLeaderboard: React.FC<LapTimeLeaderboardProps> = ({ driverHi
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                {dh.basicDriver?.name}
+                                {`${dh.basicDriver?.name}  - ${dh.laps.length} laps`}
                             </a>
                             {hoveredDriver === dh.basicDriver && <DriverHover driver={hoveredDriver} />}
                         </div>,
