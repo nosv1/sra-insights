@@ -32,7 +32,7 @@ export class SeriesSchedule {
 
 export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
-    new SeriesRound(1, 'silverstone', moment.tz('2025-10-16', 'America/New_York').toDate()),
+    new SeriesRound(1, 'indianapolis', moment.tz('2026-01-15', 'America/New_York').toDate()),
     new SeriesRound(2, 'cota', moment.tz('2025-10-23', 'America/New_York').toDate()),
     new SeriesRound(3, 'valencia', moment.tz('2025-10-30', 'America/New_York').toDate()),
     new SeriesRound(4, 'zandvoort', moment.tz('2025-11-06', 'America/New_York').toDate()),
