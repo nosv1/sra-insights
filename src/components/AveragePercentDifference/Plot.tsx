@@ -262,7 +262,7 @@ export const APDPlot: React.FC<APDProps> = ({
 
     // insert bars for division cutoffs
     if (sortByState == 'apd' && !sortByDivisionEnabledState && selectedDivisionsState.length == uniqueDivisions.length - 1) {
-        const numDivisions = 6 + 1; // uniqueDivisions.length;
+        const numDivisions = 5 + 1; // uniqueDivisions.length;
         const driversPerDivision = (plotData.length + (numDivisions - 1)) / (numDivisions - 1);
         let i = plotData.length - 1;
         let div = numDivisions;
