@@ -352,8 +352,8 @@ app.get('/api/misc/lap-counts', async (req, res) => {
         MATCH (s:Session)
         WITH s, datetime($afterDate) as afterDate, datetime($beforeDate) as beforeDate
         WHERE TRUE 
-            // AND s.session_type = "FP"
-            AND s.server_number IN ["1", "2", "3", "4"]
+            AND ((s.session_type IN ["FP"] AND s.server_number IN ["1", "2", "3", "4"]) 
+            OR (s.session_type IN ["Q", "FP", "R"] AND s.server_number = "4"))
             AND datetime(s.finish_time) >= datetime({year: afterDate.year, month: afterDate.month, day: afterDate.day, timezone: 'America/New_York'})
             AND datetime(s.finish_time) <= datetime({year: beforeDate.year, month: beforeDate.month, day: beforeDate.day, timezone: 'America/New_York'})
         WITH s
