@@ -1,14 +1,11 @@
-import { TrackSelection } from "../TrackSelection";
-import * as ss from 'simple-statistics';
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { TEAM_SERIES_SCHEDULE, SeriesSchedule } from "../../utils/Schedules";
-import { DivSelection } from "../DivSelection";
-import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
 import Plot from 'react-plotly.js';
-import { SelectionArea } from "./SelectionArea";
+import { useLocation, useNavigate } from "react-router-dom";
+import * as ss from 'simple-statistics';
+import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
+import { TEAM_SERIES_SCHEDULE } from "../../utils/Schedules";
 import { SRADivColor } from "../../utils/SRADivColor";
-import { driver } from "neo4j-driver";
+import { SelectionArea } from "./SelectionArea";
 
 export const TimeInPitsPlot: React.FC = () => {
     const location = useLocation();
@@ -25,7 +22,7 @@ export const TimeInPitsPlot: React.FC = () => {
         return {
             selectedDivisions: selectedDivisions || [],
             trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
-            season: season ? parseInt(season) : 17,
+            season: season ? parseInt(season) : 18,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
     };
