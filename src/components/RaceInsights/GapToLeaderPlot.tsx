@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTeamSeriesWeekendsFromAttrs } from "../../hooks/useSessions";
 import { Lap } from "../../types/Lap";
 import { SRADivColor } from "../../utils/SRADivColor";
-import { TEAM_SERIES_SCHEDULE, SeriesSchedule } from "../../utils/Schedules";
+import { TEAM_SERIES_SCHEDULE } from "../../utils/Schedules";
 import { SelectionArea } from "./SelectionArea";
 
 export const GapToLeaderPlot: React.FC = () => {
@@ -22,7 +22,7 @@ export const GapToLeaderPlot: React.FC = () => {
         return {
             selectedDivisions: selectedDivisions || [],
             trackName: trackName || TEAM_SERIES_SCHEDULE.getCurrentRound().trackName,
-            season: season ? parseInt(season) : 17,
+            season: season ? parseInt(season) : 18,
             sortByDivisionEnabled: sortByDivisionEnabled,
         };
     };
