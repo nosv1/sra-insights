@@ -32,14 +32,14 @@ export class SeriesSchedule {
 
 export const TEAM_SERIES_SCHEDULE = new SeriesSchedule([
     // these dates are the thursday of the week, given the final race day is wednesday
-    new SeriesRound(1, 'indianapolis', moment.tz('2026-01-15', 'America/New_York').toDate()),
-    new SeriesRound(2, 'watkins_glen', moment.tz('2026-01-22', 'America/New_York').toDate()),
-    new SeriesRound(3, 'barcelona', moment.tz('2026-02-05', 'America/New_York').toDate()),
-    new SeriesRound(4, 'zolder', moment.tz('2026-02-12', 'America/New_York').toDate()),
-    new SeriesRound(5, 'imola', moment.tz('2026-02-19', 'America/New_York').toDate()),
-    new SeriesRound(6, 'snetterton', moment.tz('2026-02-26', 'America/New_York').toDate()),
-    new SeriesRound(7, 'kyalami', moment.tz('2026-03-05', 'America/New_York').toDate()),
-    new SeriesRound(8, 'red_bull_ring', moment.tz('2026-03-12', 'America/New_York').toDate()),
+    new SeriesRound(1, 'suzuka', moment.tz('2026-04-16', 'America/New_York').toDate()),
+    new SeriesRound(2, 'spa', moment.tz('2026-04-23', 'America/New_York').toDate()),
+    new SeriesRound(3, 'laguna_seca', moment.tz('2026-04-30', 'America/New_York').toDate()),
+    new SeriesRound(4, 'monza', moment.tz('2026-05-07', 'America/New_York').toDate()),
+    new SeriesRound(5, 'donington_park', moment.tz('2026-05-14', 'America/New_York').toDate()),
+    new SeriesRound(6, 'cota', moment.tz('2026-05-28', 'America/New_York').toDate()),
+    new SeriesRound(7, 'hungaroring', moment.tz('2026-06-04', 'America/New_York').toDate()),
+    new SeriesRound(8, 'nurburgring', moment.tz('2026-06-11', 'America/New_York').toDate())
 ]);
 
 export const ENDURANCE_SERIES_SCHEDULE = new SeriesSchedule([
